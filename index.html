@@ -251,7 +251,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
       <div class="sgroup"><div class="sgroup-title">SEGURIDAD</div><div class="srow"><div><div class="srow-lbl">PIN de acceso</div><div class="srow-sub">Cambia tu PIN de 4 dígitos</div></div><span class="srow-action" onclick="changePin()">Cambiar</span></div></div>
       <div class="sgroup"><div class="sgroup-title">CATEGORÍAS</div><div id="cat-settings-list"></div><div class="srow"><div><div class="srow-lbl">Nueva categoría</div></div><span class="srow-action" onclick="addCategory()">+ Añadir</span></div></div>
       <div class="sgroup"><div class="sgroup-title">DATOS</div><div class="srow"><div><div class="srow-lbl">Exportar Excel</div></div><span class="srow-action" onclick="exportExcel()">📊</span></div><div class="srow"><div><div class="srow-lbl">Exportar CSV</div></div><span class="srow-action" onclick="exportCSV()">📄</span></div><div class="srow"><div><div class="srow-lbl" style="color:var(--pink)">Borrar todos los datos</div></div><span class="srow-action" style="color:var(--pink)" onclick="clearAllData()">Borrar</span></div></div>
-      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v3.1 · Sync Firebase 🔄<br>Datos compartidos entre dispositivos</p>
+      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v4.0 · Smart Sync 🔄<br>Datos compartidos entre dispositivos</p>
     </div>
   </div>
   <nav class="bnav">
@@ -366,68 +366,193 @@ const DEFAULT_CATS=[
   {id:'otros',name:'Otros',icon:'📦',color:'#78909c'}
 ];
 
-function defaultState(){ return{pin:'1221',users:{u1:'Gustavo',u2:'Gabrielle'},categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),movements:[],budgets:{},goals:[],savings:[]}; }
+function defaultState(){ return{pin:'1221',users:{u1:'Gustavo',u2:'Gabrielle'},categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),movements:[],budgets:{},goals:[],savings:[],lastModified:0}; }
 
 let S=defaultState();
-let currentUser=null,viewMonth=new Date().getMonth(),viewYear=new Date().getFullYear(),currentPage='dashboard',histFilter='all',movType='gasto',pieChart=null,barChart=null,catOvTab='month',catOvCat=null,reportTab='monthly',isSyncing=false;
+let currentUser=null,viewMonth=new Date().getMonth(),viewYear=new Date().getFullYear(),currentPage='dashboard',histFilter='all',movType='gasto',pieChart=null,barChart=null,catOvTab='month',catOvCat=null,reportTab='monthly',isSyncing=false,initialSyncDone=false;
 const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 /* ═══════════════════════════════════════════════════
-   SYNC ENGINE
+   🔄 SMART SYNC ENGINE v4.0
+   Firebase es SIEMPRE la fuente de verdad.
+   Los datos locales se MERGEAN, nunca sobrescriben.
    ═══════════════════════════════════════════════════ */
+
+// Merge arrays por ID: combina local + remoto, gana el más reciente (ts)
+function mergeById(local, remote){
+  const m = new Map();
+  (local||[]).forEach(i => { if(i && i.id) m.set(i.id, i); });
+  (remote||[]).forEach(i => {
+    if(i && i.id){
+      const existing = m.get(i.id);
+      // Si existe en ambos, gana el que tenga ts más reciente
+      if(existing && existing.ts && i.ts){
+        if(i.ts >= existing.ts) m.set(i.id, i);
+      } else {
+        m.set(i.id, i);
+      }
+    }
+  });
+  return Array.from(m.values());
+}
+
+function mergeBudgets(l, r){
+  const m = {...(l||{})};
+  Object.keys(r||{}).forEach(k => {
+    m[k] = m[k] ? {...m[k], ...(r[k]||{})} : (r[k]||{});
+  });
+  return m;
+}
+
+// Mergea estado completo: combina local con remoto inteligentemente
+function mergeStates(local, remote){
+  if(!remote) return local;
+  const merged = {...local};
+  // PIN y usuarios: gana el más reciente
+  if((remote.lastModified||0) >= (local.lastModified||0)){
+    merged.pin = remote.pin || local.pin;
+    merged.users = remote.users || local.users;
+  }
+  // Categorías: gana el remoto si tiene más o es más reciente
+  if(remote.categories && remote.categories.length){
+    merged.categories = remote.categories;
+  }
+  // Arrays: merge por ID (nunca se pierden datos)
+  merged.movements = mergeById(local.movements, remote.movements);
+  merged.goals = mergeById(local.goals, remote.goals);
+  merged.savings = mergeById(local.savings, remote.savings);
+  // Budgets: merge por mes+categoría
+  merged.budgets = mergeBudgets(local.budgets, remote.budgets);
+  // Timestamp más reciente
+  merged.lastModified = Math.max(local.lastModified||0, remote.lastModified||0);
+  return merged;
+}
+
+// Guardar: primero lee Firebase, mergea, luego escribe
 function saveState(){
-  localStorage.setItem('gg_finances',JSON.stringify(S));
-  if(firebaseReady&&dbRef){
+  S.lastModified = Date.now();
+  localStorage.setItem('gg_finances', JSON.stringify(S));
+
+  if(firebaseReady && dbRef){
     setSyncStatus('syncing');
-    dbRef.set(S).then(()=>setSyncStatus('online')).catch(()=>setSyncStatus('offline'));
+    // Leer Firebase actual → mergear → escribir
+    dbRef.once('value').then(snapshot => {
+      const remote = snapshot.val();
+      if(remote){
+        // Mergear nuestro estado con el remoto
+        const merged = mergeStates(S, remote);
+        S = merged;
+        localStorage.setItem('gg_finances', JSON.stringify(S));
+      }
+      // Ahora escribir el estado mergeado
+      return dbRef.set(S);
+    }).then(() => {
+      setSyncStatus('online');
+    }).catch(err => {
+      console.warn('Sync error:', err);
+      setSyncStatus('offline');
+    });
   }
 }
 
-function startRealtimeSync(){
-  if(!firebaseReady||!dbRef){setSyncStatus('offline');document.getElementById('set-sync-status').textContent='Solo local (sin Firebase)';return;}
-  firebase.database().ref('.info/connected').on('value',snap=>{
-    setSyncStatus(snap.val()?'online':'offline');
-    const el=document.getElementById('set-sync-status');
-    if(el) el.textContent=snap.val()?'🟢 Conectado en tiempo real':'🔴 Sin conexión';
-  });
-  dbRef.on('value',snapshot=>{
-    if(isSyncing)return;
-    const data=snapshot.val();
-    if(data){
-      isSyncing=true;
-      S.pin=data.pin||S.pin;
-      S.users=data.users||S.users;
-      S.categories=data.categories&&data.categories.length?data.categories:S.categories;
-      S.budgets=mergeBudgets(S.budgets,data.budgets||{});
-      S.movements=mergeById(S.movements,data.movements||[]);
-      S.goals=mergeById(S.goals,data.goals||[]);
-      S.savings=mergeById(S.savings,data.savings||[]);
-      localStorage.setItem('gg_finances',JSON.stringify(S));
-      updateUserNames();
-      renderPage();
-      isSyncing=false;
+// Sync manual: lee Firebase → mergea → escribe → actualiza UI
+function manualSync(){
+  if(!firebaseReady || !dbRef){
+    toast('Firebase no disponible', 'err');
+    return;
+  }
+  setSyncStatus('syncing');
+  dbRef.once('value').then(snapshot => {
+    const remote = snapshot.val();
+    if(remote){
+      S = mergeStates(S, remote);
     }
+    S.lastModified = Date.now();
+    localStorage.setItem('gg_finances', JSON.stringify(S));
+    return dbRef.set(S);
+  }).then(() => {
+    setSyncStatus('online');
+    updateUserNames();
+    renderPage();
+    toast('Sincronizado correctamente ✅');
+  }).catch(err => {
+    console.warn('Manual sync error:', err);
+    setSyncStatus('offline');
+    toast('Error de conexión', 'err');
   });
 }
 
-function mergeById(local,remote){const m=new Map();(local||[]).forEach(i=>{if(i&&i.id)m.set(i.id,i)});(remote||[]).forEach(i=>{if(i&&i.id)m.set(i.id,i)});return Array.from(m.values());}
-function mergeBudgets(l,r){const m={...l};Object.keys(r||{}).forEach(k=>{m[k]=m[k]?{...m[k],...r[k]}:r[k]});return m;}
+// Realtime listener: cuando Firebase cambia, mergear (no sobrescribir)
+function startRealtimeSync(){
+  if(!firebaseReady || !dbRef){
+    setSyncStatus('offline');
+    const el = document.getElementById('set-sync-status');
+    if(el) el.textContent = 'Solo local (sin Firebase)';
+    return;
+  }
+
+  // Monitor de conexión
+  firebase.database().ref('.info/connected').on('value', snap => {
+    setSyncStatus(snap.val() ? 'online' : 'offline');
+    const el = document.getElementById('set-sync-status');
+    if(el) el.textContent = snap.val() ? '🟢 Conectado en tiempo real' : '🔴 Sin conexión';
+  });
+
+  // Listener en tiempo real: merge incoming data
+  dbRef.on('value', snapshot => {
+    if(isSyncing) return;
+    const remote = snapshot.val();
+    if(!remote) return;
+
+    isSyncing = true;
+
+    if(!initialSyncDone){
+      // Primera carga: Firebase tiene prioridad, merge con local
+      S = mergeStates(S, remote);
+      localStorage.setItem('gg_finances', JSON.stringify(S));
+      initialSyncDone = true;
+    } else {
+      // Actualizaciones posteriores: merge inteligente
+      const beforeCount = S.movements.length;
+      S = mergeStates(S, remote);
+      localStorage.setItem('gg_finances', JSON.stringify(S));
+
+      // Solo mostrar toast si hay datos nuevos
+      if(S.movements.length > beforeCount){
+        toast('Datos sincronizados 🔄');
+      }
+    }
+
+    updateUserNames();
+    renderPage();
+    isSyncing = false;
+  });
+}
 
 function setSyncStatus(s){
-  const dot=document.getElementById('sync-dot');if(dot)dot.className='sync-indicator sync-'+s;
-  const st=document.getElementById('sync-status');
-  if(st){if(s==='online')st.innerHTML='<span style="color:var(--mint)">🟢 Sincronizado</span>';else if(s==='offline')st.innerHTML='<span style="color:var(--pink)">🔴 Sin conexión</span>';else st.innerHTML='<span style="color:var(--gold)">🟡 Sincronizando...</span>';}
+  const dot = document.getElementById('sync-dot');
+  if(dot) dot.className = 'sync-indicator sync-' + s;
+  const st = document.getElementById('sync-status');
+  if(st){
+    if(s === 'online') st.innerHTML = '<span style="color:var(--mint)">🟢 Sincronizado</span>';
+    else if(s === 'offline') st.innerHTML = '<span style="color:var(--pink)">🔴 Sin conexión</span>';
+    else st.innerHTML = '<span style="color:var(--gold)">🟡 Sincronizando...</span>';
+  }
 }
 
-function manualSync(){
-  if(firebaseReady&&dbRef){setSyncStatus('syncing');dbRef.set(S).then(()=>{setSyncStatus('online');toast('Sincronizado ✅')}).catch(()=>{setSyncStatus('offline');toast('Error de conexión','err')});}
-  else toast('Firebase no disponible','err');
+function loadState(){
+  try{
+    const r = localStorage.getItem('gg_finances');
+    if(r){
+      S = {...defaultState(), ...JSON.parse(r)};
+      if(!S.categories || !S.categories.length) S.categories = JSON.parse(JSON.stringify(DEFAULT_CATS));
+      if(!S.lastModified) S.lastModified = 0;
+    }
+  }catch(e){ console.warn('Load error:', e); }
 }
-
-function loadState(){try{const r=localStorage.getItem('gg_finances');if(r){S={...defaultState(),...JSON.parse(r)};if(!S.categories||!S.categories.length)S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));}}catch(e){}}
 
 /* ═══════════════════════════════════════════════════
-   UTILITIES  ✅ CORREGIDO - fmtBalance con signo
+   UTILITIES
    ═══════════════════════════════════════════════════ */
 function fmt(n){return'€'+Math.abs(n).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function fmtBalance(n){
@@ -570,7 +695,7 @@ function renderPage(){
 }
 
 /* ═══════════════════════════════════════════════════
-   DASHBOARD  ✅ CORREGIDO - usa fmtBalance
+   DASHBOARD
    ═══════════════════════════════════════════════════ */
 function renderDashboard(){
   const movs=mMovs();
@@ -578,7 +703,6 @@ function renderDashboard(){
   const expense=movs.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0);
   const balance=income-expense;
 
-  // ✅ CORRECCIÓN PRINCIPAL: usar fmtBalance para mostrar signo negativo
   const safeEl=document.getElementById('safe-spend');
   safeEl.textContent=fmtBalance(balance);
   safeEl.className='safe-amount'+(balance<0?' negative':'');
@@ -588,24 +712,20 @@ function renderDashboard(){
   const savPct=income>0?Math.round(((income-expense)/income)*100):0;
   document.getElementById('s-saved').textContent=savPct+'%';
 
-  // Per-user stats
   const gExp=movs.filter(m=>m.type==='gasto'&&m.user==='gustavo').reduce((s,m)=>s+m.amount,0);
   const gaExp=movs.filter(m=>m.type==='gasto'&&m.user==='gabrielle').reduce((s,m)=>s+m.amount,0);
   document.getElementById('st-g').textContent=fmtS(gExp);
   document.getElementById('st-ga').textContent=fmtS(gaExp);
   document.getElementById('st-movs').textContent=movs.length;
 
-  // Budget pct
   const bk=mkk(viewYear,viewMonth);
   const budgets=S.budgets[bk]||{};
   const totalBudg=Object.values(budgets).reduce((s,v)=>s+(parseFloat(v)||0),0);
   const budgPct=totalBudg>0?Math.min(Math.round((expense/totalBudg)*100),999):0;
   document.getElementById('st-budg').textContent=budgPct+'%';
 
-  // Category grid (top 4)
   renderCatGrid(movs,budgets);
 
-  // Dual panel
   const gInc=movs.filter(m=>m.type==='ingreso'&&m.user==='gustavo').reduce((s,m)=>s+m.amount,0);
   const gaInc=movs.filter(m=>m.type==='ingreso'&&m.user==='gabrielle').reduce((s,m)=>s+m.amount,0);
   document.getElementById('du-g-exp').textContent=fmt(gExp);
@@ -616,10 +736,7 @@ function renderDashboard(){
   document.getElementById('du-bar-g').style.width=Math.round((gExp/totalExp)*100)+'%';
   document.getElementById('du-bar-ga').style.width=Math.round((gaExp/totalExp)*100)+'%';
 
-  // Recent movements (last 5)
   renderRecentMovs(movs);
-
-  // Charts
   renderPieChart(movs);
   renderBarChart();
 }
@@ -721,7 +838,6 @@ function renderHistory(){
   if(q)filtered=filtered.filter(m=>(m.subcat||'').toLowerCase().includes(q)||(m.desc||'').toLowerCase().includes(q)||(m.intype||'').toLowerCase().includes(q)||getCat(m.category).name.toLowerCase().includes(q));
   filtered.sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
 
-  // Summary
   const inc=filtered.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0);
   const exp=filtered.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0);
   document.getElementById('hist-summary').innerHTML=`<div class="stats-row"><div class="stat-tile st-mint"><div class="stat-tile-lbl">Ingresos</div><div class="stat-tile-val">${fmt(inc)}</div></div><div class="stat-tile st-pink"><div class="stat-tile-lbl">Gastos</div><div class="stat-tile-val">${fmt(exp)}</div></div></div>`;
@@ -729,7 +845,6 @@ function renderHistory(){
   const list=document.getElementById('hist-list');
   if(!filtered.length){list.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>Sin resultados</p></div>';return;}
 
-  // Group by date
   const groups={};
   filtered.forEach(m=>{if(!groups[m.date])groups[m.date]=[];groups[m.date].push(m)});
   let html='';
@@ -839,7 +954,6 @@ function renderCatOverlay(){
   document.getElementById('cat-ov-total').textContent=fmt(total);
   document.getElementById('cat-ov-count').textContent=movs.length+' movimientos';
 
-  // Budget bar
   const bk=mkk(viewYear,viewMonth);
   const budg=parseFloat((S.budgets[bk]||{})[catOvCat])||0;
   const budgSec=document.getElementById('cat-ov-budget-section');
@@ -852,7 +966,6 @@ function renderCatOverlay(){
     bar.style.background=pct>=100?'var(--pink)':pct>=75?'var(--gold)':'var(--mint)';
   }else{budgSec.style.display='none';}
 
-  // List
   const sorted=[...movs].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('cat-ov-list').innerHTML=sorted.length?sorted.map(m=>`<div class="mov-item" onclick="closeOverlay('cat-overlay');openEditMovement('${m.id}')">
     <div class="mov-ico ico-gasto">${c.icon}</div>
@@ -876,7 +989,6 @@ function openProfile(){
   document.getElementById('pf-inc').textContent=fmt(myInc);
   document.getElementById('pf-cnt').textContent=myMovs.length;
 
-  // Top categories
   const catTotals={};
   myMovs.filter(m=>m.type==='gasto').forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});
   const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -990,7 +1102,6 @@ function renderSavings(){
   document.getElementById('sav-total').textContent=fmt(totalSav);
   document.getElementById('sav-month').textContent=fmt(monthSav);
 
-  // Goals
   const gl=document.getElementById('goals-list');
   if(!S.goals.length){gl.innerHTML='<div class="empty"><div class="empty-ico">🎯</div><p>Sin objetivos creados</p></div>';}
   else{gl.innerHTML=S.goals.map(g=>{
@@ -999,7 +1110,6 @@ function renderSavings(){
     return `<div class="goal-card"><div class="goal-top"><div><div class="goal-name">${g.emoji||'🎯'} ${g.name}</div><div class="goal-amounts">${fmt(saved)} / ${fmt(g.target)}</div></div><button class="goal-del" onclick="deleteGoal('${g.id}')">🗑️</button></div><div class="pbar" style="height:6px"><div class="pfill" style="width:${pct}%;background:var(--mint)"></div></div><div class="goal-pct">${pct}% completado</div></div>`;
   }).join('');}
 
-  // Savings list
   const sl=document.getElementById('sav-list');
   const sorted=[...S.savings].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
   if(!sorted.length){sl.innerHTML='<div class="empty"><p>Sin registros de ahorro</p></div>';}
@@ -1021,7 +1131,7 @@ function saveGoal(){
   const target=parseFloat(document.getElementById('goal-target').value);
   if(!name){toast('Escribe un nombre','err');return;}
   if(!target||target<=0){toast('Define una meta válida','err');return;}
-  S.goals.push({id:genId(),name,emoji:document.getElementById('goal-emoji').value||'🎯',target});
+  S.goals.push({id:genId(),name,emoji:document.getElementById('goal-emoji').value||'🎯',target,ts:Date.now()});
   saveState();closeOverlay('goal-overlay');renderPage();toast('Objetivo creado ✅');
 }
 
