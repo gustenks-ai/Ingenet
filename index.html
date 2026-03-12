@@ -131,7 +131,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .env-name{font-size:14px;font-weight:600}.env-spent{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:700}
 .env-budget{font-size:11px;color:var(--text2)}.env-status{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px}
 .goal-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--rsm);padding:18px;margin-bottom:10px}
-.goal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}.goal-name{font-size:15px;font-weight:700}.goal-emoji{font-size:24px}
+.goal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}.goal-name{font-size:15px;font-weight:700}
 .goal-amounts{font-family:'Bricolage Grotesque',sans-serif;font-size:14px;color:var(--text2)}.goal-pct{font-size:11px;color:var(--text2);margin-top:6px}
 .goal-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px}.goal-del:hover{color:var(--pink)}
 .sgroup{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
@@ -254,7 +254,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
       <div class="sgroup"><div class="sgroup-title">SEGURIDAD</div><div class="srow"><div><div class="srow-lbl">PIN de acceso</div><div class="srow-sub">Cambia tu PIN de 4 dígitos</div></div><span class="srow-action" onclick="changePin()">Cambiar</span></div></div>
       <div class="sgroup"><div class="sgroup-title">CATEGORÍAS</div><div id="cat-settings-list"></div><div class="srow"><div><div class="srow-lbl">Nueva categoría</div></div><span class="srow-action" onclick="addCategory()">+ Añadir</span></div></div>
       <div class="sgroup"><div class="sgroup-title">DATOS</div><div class="srow"><div><div class="srow-lbl">Exportar Excel</div></div><span class="srow-action" onclick="exportExcel()">📊</span></div><div class="srow"><div><div class="srow-lbl">Exportar CSV</div></div><span class="srow-action" onclick="exportCSV()">📄</span></div><div class="srow"><div><div class="srow-lbl" style="color:var(--pink)">Borrar todos los datos</div></div><span class="srow-action" style="color:var(--pink)" onclick="clearAllData()">Borrar</span></div></div>
-      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v4.2 · Smart Sync + Modals 🔄<br>Datos compartidos entre dispositivos</p>
+      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v4.3 🔄<br>Datos compartidos entre dispositivos</p>
     </div>
   </div>
   <nav class="bnav">
@@ -332,7 +332,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
   <button class="btn btn-ghost btn-mt" onclick="closeOverlay('savings-overlay')">Cancelar</button>
 </div></div>
 
-<!-- MODAL: Nueva categoría -->
 <div class="overlay" id="newcat-overlay"><div class="modal">
   <div class="modal-handle"></div>
   <div class="modal-title">Nueva categoría</div>
@@ -346,7 +345,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
   <button class="btn btn-ghost btn-mt" onclick="closeOverlay('newcat-overlay')">Cancelar</button>
 </div></div>
 
-<!-- MODAL: Renombrar usuario -->
 <div class="overlay" id="rename-overlay"><div class="modal">
   <div class="modal-handle"></div>
   <div class="modal-title">Cambiar nombre</div>
@@ -357,7 +355,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
   <button class="btn btn-ghost btn-mt" onclick="closeOverlay('rename-overlay')">Cancelar</button>
 </div></div>
 
-<!-- MODAL: Cambiar PIN -->
 <div class="overlay" id="pin-overlay"><div class="modal">
   <div class="modal-handle"></div>
   <div class="modal-title">Cambiar PIN</div>
@@ -367,12 +364,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
   <button class="btn btn-ghost btn-mt" onclick="closeOverlay('pin-overlay')">Cancelar</button>
 </div></div>
 
-<!-- MODAL: Confirmar borrado -->
 <div class="overlay" id="confirm-overlay"><div class="modal">
   <div class="modal-handle"></div>
   <div class="modal-title" id="confirm-title">¿Estás seguro?</div>
   <div class="modal-sub" id="confirm-sub"></div>
-  <button class="btn btn-danger" id="confirm-btn" onclick="">Confirmar</button>
+  <button class="btn btn-danger" id="confirm-btn">Confirmar</button>
   <button class="btn btn-ghost btn-mt" onclick="closeOverlay('confirm-overlay')">Cancelar</button>
 </div></div>
 
@@ -387,7 +383,7 @@ let firebaseReady=false,dbRef=null;
 try{firebase.initializeApp(firebaseConfig);dbRef=firebase.database().ref('gg_finances');firebaseReady=true}catch(e){console.warn('Firebase error:',e.message)}
 
 /* ═══════════════════════════════════════════════════
-   STATE
+   STATE - CATEGORÍAS ACTUALIZADAS v4.3
    ═══════════════════════════════════════════════════ */
 const DEFAULT_CATS=[
   {id:'alimentacion',name:'Alimentación',icon:'🛒',color:'#ff5a7e'},
@@ -399,18 +395,41 @@ const DEFAULT_CATS=[
   {id:'educacion',name:'Educación',icon:'📚',color:'#4dd0e1'},
   {id:'suscripciones',name:'Suscripciones',icon:'📱',color:'#ba68c8'},
   {id:'restaurantes',name:'Restaurantes',icon:'🍽️',color:'#ef5350'},
-  {id:'mascotas',name:'Mascotas',icon:'🐾',color:'#8d6e63'},
-  {id:'regalos',name:'Regalos',icon:'🎁',color:'#ec407a'},
+  {id:'luz',name:'Luz',icon:'💡',color:'#ffd166'},
+  {id:'agua',name:'Agua',icon:'💧',color:'#4dd0e1'},
+  {id:'gas',name:'Gas',icon:'🔥',color:'#ff8a65'},
+  {id:'internet',name:'Internet',icon:'📡',color:'#3b9eff'},
   {id:'otros',name:'Otros',icon:'📦',color:'#78909c'}
 ];
-const EMOJI_OPTIONS=['🛒','🚗','🏠','🎬','💊','👕','📚','📱','🍽️','🐾','🎁','📦','⛽','✈️','🏋️','💇','🎮','🍺','☕','🧹','💡','📞','🎵','🏥','💻','🔧','🎂','🧸','🚌','🏦','🎓','🛍️','🧴','🍕','🎭','⚽','🏖️','💐','🪥','🧊'];
+const EMOJI_OPTIONS=['🛒','🚗','🏠','🎬','💊','👕','📚','📱','🍽️','💡','💧','🔥','📡','📦','⛽','✈️','🏋️','💇','🎮','🍺','☕','🧹','📞','🎵','🏥','💻','🔧','🎂','🧸','🚌','🏦','🎓','🛍️','🧴','🍕','🎭','⚽','🏖️','💐','🪥'];
 function defaultState(){return{pin:'1221',users:{u1:'Gustavo',u2:'Gabrielle'},categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),movements:[],budgets:{},goals:[],savings:[],lastModified:0}}
 let S=defaultState();
 let currentUser=null,viewMonth=new Date().getMonth(),viewYear=new Date().getFullYear(),currentPage='dashboard',histFilter='all',movType='gasto',pieChart=null,barChart=null,catOvTab='month',catOvCat=null,reportTab='monthly',isSyncing=false,initialSyncDone=false,selectedEmoji='📌';
 const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 /* ═══════════════════════════════════════════════════
-   🔄 SMART SYNC ENGINE v4.2
+   🔄 MIGRACIÓN DE CATEGORÍAS (se ejecuta 1 vez)
+   ═══════════════════════════════════════════════════ */
+function migrateCategories(){
+  const removeCats=['mascotas','regalos'];
+  const addCats=[
+    {id:'luz',name:'Luz',icon:'💡',color:'#ffd166'},
+    {id:'agua',name:'Agua',icon:'💧',color:'#4dd0e1'},
+    {id:'gas',name:'Gas',icon:'🔥',color:'#ff8a65'},
+    {id:'internet',name:'Internet',icon:'📡',color:'#3b9eff'}
+  ];
+  // Eliminar mascotas y regalos
+  S.categories=S.categories.filter(c=>!removeCats.includes(c.id));
+  // Añadir nuevas si no existen
+  addCats.forEach(cat=>{
+    if(!S.categories.find(c=>c.id===cat.id))S.categories.push(cat);
+  });
+  // Marcar migración como hecha
+  S._catMigration43=true;
+}
+
+/* ═══════════════════════════════════════════════════
+   🔄 SMART SYNC ENGINE v4.3
    ═══════════════════════════════════════════════════ */
 function mergeById(local,remote){const m=new Map();(local||[]).forEach(i=>{if(i&&i.id)m.set(i.id,i)});(remote||[]).forEach(i=>{if(i&&i.id){const ex=m.get(i.id);if(ex&&ex.ts&&i.ts){if(i.ts>=ex.ts)m.set(i.id,i)}else if(!ex){m.set(i.id,i)}}});return Array.from(m.values())}
 function activeItems(arr){return(arr||[]).filter(i=>!i._deleted)}
@@ -434,17 +453,7 @@ function mMovs(y,m){return activeItems(S.movements).filter(mv=>mv.date&&mv.date.
 function getCat(id){return S.categories.find(c=>c.id===id)||{id:'otros',name:'Otros',icon:'📦',color:'#78909c'}}
 function uName(u){return u==='gustavo'?S.users.u1:S.users.u2}
 function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;setTimeout(()=>t.classList.add('show'),10);setTimeout(()=>t.classList.remove('show'),2800)}
-
-/* ═══════════════════════════════════════════════════
-   CUSTOM CONFIRM (reemplazo de confirm nativo)
-   ═══════════════════════════════════════════════════ */
-function customConfirm(title,sub,callback){
-  document.getElementById('confirm-title').textContent=title;
-  document.getElementById('confirm-sub').textContent=sub;
-  const btn=document.getElementById('confirm-btn');
-  btn.onclick=function(){closeOverlay('confirm-overlay');callback()};
-  openOverlay('confirm-overlay');
-}
+function customConfirm(title,sub,callback){document.getElementById('confirm-title').textContent=title;document.getElementById('confirm-sub').textContent=sub;const btn=document.getElementById('confirm-btn');btn.onclick=function(){closeOverlay('confirm-overlay');callback()};openOverlay('confirm-overlay')}
 
 /* ═══════════════════════════════════════════════════
    PIN
@@ -477,22 +486,8 @@ function populateCatSelect(){document.getElementById('mov-cat').innerHTML=S.cate
 function openAddMovement(){document.getElementById('mov-modal-title').textContent='Nuevo movimiento';document.getElementById('mov-modal-sub').textContent='Registra un gasto o ingreso';document.getElementById('mov-amt').value='';document.getElementById('mov-date').value=new Date().toISOString().split('T')[0];document.getElementById('mov-user').value=currentUser||'gustavo';document.getElementById('mov-subcat').value='';document.getElementById('mov-desc').value='';document.getElementById('mov-method').value='Tarjeta';document.getElementById('mov-edit-id').value='';setMovType('gasto');populateCatSelect();openOverlay('mov-overlay')}
 function openEditMovement(id){const mv=activeItems(S.movements).find(m=>m.id===id);if(!mv)return;document.getElementById('mov-modal-title').textContent='Editar movimiento';document.getElementById('mov-modal-sub').textContent='Modifica los datos';document.getElementById('mov-amt').value=mv.amount;document.getElementById('mov-date').value=mv.date;document.getElementById('mov-user').value=mv.user;document.getElementById('mov-desc').value=mv.desc||'';document.getElementById('mov-method').value=mv.method||'Tarjeta';document.getElementById('mov-edit-id').value=id;setMovType(mv.type);populateCatSelect();if(mv.type==='gasto'){document.getElementById('mov-cat').value=mv.category||'otros';document.getElementById('mov-subcat').value=mv.subcat||''}else{document.getElementById('mov-intype').value=mv.intype||'Sueldo'}openOverlay('mov-overlay')}
 function saveMovement(){const amt=parseFloat(document.getElementById('mov-amt').value);if(!amt||amt<=0){toast('Introduce un importe válido','err');return}const date=document.getElementById('mov-date').value;if(!date){toast('Selecciona una fecha','err');return}const editId=document.getElementById('mov-edit-id').value;const mv={id:editId||genId(),type:movType,amount:amt,date:date,user:document.getElementById('mov-user').value,category:movType==='gasto'?document.getElementById('mov-cat').value:'ingreso',subcat:movType==='gasto'?document.getElementById('mov-subcat').value:'',intype:movType==='ingreso'?document.getElementById('mov-intype').value:'',desc:document.getElementById('mov-desc').value,method:document.getElementById('mov-method').value,ts:Date.now()};if(editId){const idx=S.movements.findIndex(m=>m.id===editId);if(idx>=0)S.movements[idx]=mv}else{S.movements.push(mv)}saveState();closeOverlay('mov-overlay');renderPage();toast(editId?'Movimiento actualizado ✅':'Movimiento guardado ✅')}
-
-function deleteMovement(id){
-  customConfirm('¿Eliminar movimiento?','Esta acción no se puede deshacer',function(){
-    const idx=S.movements.findIndex(m=>m.id===id);
-    if(idx>=0){S.movements[idx]._deleted=true;S.movements[idx].ts=Date.now()}
-    saveState();renderPage();toast('Movimiento eliminado ✅');
-  });
-}
-
-function deleteGoal(id){
-  customConfirm('¿Eliminar objetivo?','Se eliminará este objetivo de ahorro',function(){
-    const idx=S.goals.findIndex(g=>g.id===id);
-    if(idx>=0){S.goals[idx]._deleted=true;S.goals[idx].ts=Date.now()}
-    saveState();renderPage();toast('Objetivo eliminado');
-  });
-}
+function deleteMovement(id){customConfirm('¿Eliminar movimiento?','Esta acción no se puede deshacer',function(){const idx=S.movements.findIndex(m=>m.id===id);if(idx>=0){S.movements[idx]._deleted=true;S.movements[idx].ts=Date.now()}saveState();renderPage();toast('Movimiento eliminado ✅')})}
+function deleteGoal(id){customConfirm('¿Eliminar objetivo?','Se eliminará este objetivo de ahorro',function(){const idx=S.goals.findIndex(g=>g.id===id);if(idx>=0){S.goals[idx]._deleted=true;S.goals[idx].ts=Date.now()}saveState();renderPage();toast('Objetivo eliminado')})}
 
 /* ═══════════════════════════════════════════════════
    RENDER PAGE ROUTER
@@ -503,18 +498,14 @@ function renderPage(){const ml=MONTHS[viewMonth]+' '+viewYear;['dash-month','his
    DASHBOARD
    ═══════════════════════════════════════════════════ */
 function renderDashboard(){const movs=mMovs(),income=movs.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0),expense=movs.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0),balance=income-expense;const safeEl=document.getElementById('safe-spend');safeEl.textContent=fmtBalance(balance);safeEl.className='safe-amount'+(balance<0?' negative':'');document.getElementById('s-income').textContent=fmtS(income);document.getElementById('s-spent').textContent=fmtS(expense);document.getElementById('s-saved').textContent=(income>0?Math.round(((income-expense)/income)*100):0)+'%';const gExp=movs.filter(m=>m.type==='gasto'&&m.user==='gustavo').reduce((s,m)=>s+m.amount,0),gaExp=movs.filter(m=>m.type==='gasto'&&m.user==='gabrielle').reduce((s,m)=>s+m.amount,0);document.getElementById('st-g').textContent=fmtS(gExp);document.getElementById('st-ga').textContent=fmtS(gaExp);document.getElementById('st-movs').textContent=movs.length;const bk=mkk(viewYear,viewMonth),budgets=S.budgets[bk]||{},totalBudg=Object.values(budgets).reduce((s,v)=>s+(parseFloat(v)||0),0);document.getElementById('st-budg').textContent=(totalBudg>0?Math.min(Math.round((expense/totalBudg)*100),999):0)+'%';renderCatGrid(movs,budgets);const gInc=movs.filter(m=>m.type==='ingreso'&&m.user==='gustavo').reduce((s,m)=>s+m.amount,0),gaInc=movs.filter(m=>m.type==='ingreso'&&m.user==='gabrielle').reduce((s,m)=>s+m.amount,0);document.getElementById('du-g-exp').textContent=fmt(gExp);document.getElementById('du-g-inc').textContent=fmt(gInc);document.getElementById('du-ga-exp').textContent=fmt(gaExp);document.getElementById('du-ga-inc').textContent=fmt(gaInc);const tE=gExp+gaExp||1;document.getElementById('du-bar-g').style.width=Math.round((gExp/tE)*100)+'%';document.getElementById('du-bar-ga').style.width=Math.round((gaExp/tE)*100)+'%';renderRecentMovs(movs);renderPieChart(movs);renderBarChart()}
-
 function renderCatGrid(movs,budgets){const grid=document.getElementById('cat-grid'),gastos=movs.filter(m=>m.type==='gasto'),catTotals={};gastos.forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,4);if(!sorted.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-ico">📊</div><p>Sin gastos este mes</p></div>';return}grid.innerHTML=sorted.map(([catId,total])=>{const c=getCat(catId),budg=parseFloat(budgets[catId])||0,pct=budg>0?Math.min(Math.round((total/budg)*100),999):0,badge=budg===0?'':pct>=100?'badge-over':pct>=75?'badge-warn':'badge-ok',badgeText=budg>0?(pct+'%'):'',barColor=pct>=100?'var(--pink)':pct>=75?'var(--gold)':'var(--mint)',barW=budg>0?Math.min(pct,100):0;return `<div class="cat-tile" onclick="openCatOverlay('${catId}')"><div class="ct-top"><span class="ct-icon">${c.icon}</span>${badgeText?`<span class="ct-badge ${badge}">${badgeText}</span>`:''}</div><div class="ct-name">${c.name}</div><div class="ct-spent">-${fmt(total)}</div>${budg>0?`<div class="ct-budget">de ${fmt(budg)}</div><div class="ct-bar"><div class="ct-fill" style="width:${barW}%;background:${barColor}"></div></div>`:''}</div>`}).join('')}
-
 function renderRecentMovs(movs){const el=document.getElementById('recent-movs'),sorted=[...movs].sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts).slice(0,5);if(!sorted.length){el.innerHTML='<div class="empty"><div class="empty-ico">📝</div><p>Sin movimientos este mes</p></div>';return}el.innerHTML='<div class="mov-wrap">'+sorted.map(m=>renderMovItem(m)).join('')+'</div>'}
-
 function renderMovItem(m){const c=getCat(m.category),isG=m.type==='gasto',label=isG?(m.subcat||c.name):(m.intype||'Ingreso'),ub=m.user==='gustavo'?'g':'ga';return `<div class="mov-item" onclick="openEditMovement('${m.id}')"><div class="mov-ico ${isG?'ico-gasto':'ico-ingreso'}">${isG?c.icon:'💰'}</div><div class="mov-body"><div class="mov-name">${label}</div><div class="mov-meta"><span class="ubadge ${ub}">${uName(m.user)}</span><span class="mov-cat">${m.desc||''}</span></div></div><div class="mov-amt ${isG?'amt-gasto':'amt-ingreso'}">${isG?'-':'+'} ${fmt(m.amount)}</div></div>`}
 
 /* ═══════════════════════════════════════════════════
    CHARTS
    ═══════════════════════════════════════════════════ */
 function renderPieChart(movs){const gastos=movs.filter(m=>m.type==='gasto'),catTotals={};gastos.forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);const ctx=document.getElementById('pie-chart');if(pieChart)pieChart.destroy();if(!sorted.length){pieChart=null;return}pieChart=new Chart(ctx,{type:'doughnut',data:{labels:sorted.map(([id])=>getCat(id).name),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:sorted.map(([id])=>getCat(id).color),borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b85a8',font:{size:11,family:"'Plus Jakarta Sans'"},padding:12,usePointStyle:true,pointStyleWidth:8}}}}})}
-
 function renderBarChart(){const labels=[],incData=[],expData=[];for(let i=5;i>=0;i--){let m=viewMonth-i,y=viewYear;if(m<0){m+=12;y--}labels.push(MONTHS[m].substring(0,3));const mm=mMovs(y,m);incData.push(mm.filter(x=>x.type==='ingreso').reduce((s,x)=>s+x.amount,0));expData.push(mm.filter(x=>x.type==='gasto').reduce((s,x)=>s+x.amount,0))}const ctx=document.getElementById('bar-chart');if(barChart)barChart.destroy();barChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Ingresos',data:incData,backgroundColor:'rgba(0,229,179,0.7)',borderRadius:6,barPercentage:.4},{label:'Gastos',data:expData,backgroundColor:'rgba(255,90,126,0.7)',borderRadius:6,barPercentage:.4}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{grid:{display:false},ticks:{color:'#344760',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#344760',font:{size:10},callback:v=>fmtS(v)}}},plugins:{legend:{labels:{color:'#6b85a8',font:{size:11,family:"'Plus Jakarta Sans'"},usePointStyle:true,pointStyleWidth:8,padding:14}}}}})}
 
 /* ═══════════════════════════════════════════════════
@@ -563,97 +554,33 @@ function openAddSavings(){document.getElementById('sav-amt').value='';document.g
 function saveSavingsEntry(){const amt=parseFloat(document.getElementById('sav-amt').value);if(!amt||amt<=0){toast('Introduce una cantidad','err');return}S.savings.push({id:genId(),amount:amt,date:document.getElementById('sav-date').value,goalId:document.getElementById('sav-goal').value,note:document.getElementById('sav-note').value,ts:Date.now()});saveState();closeOverlay('savings-overlay');renderPage();toast('Ahorro registrado ✅')}
 
 /* ═══════════════════════════════════════════════════
-   SETTINGS - CON MODALES PROPIOS (sin prompt)
+   SETTINGS
    ═══════════════════════════════════════════════════ */
 function renderSettings(){document.getElementById('cat-settings-list').innerHTML=S.categories.map(c=>`<div class="srow"><div><div class="srow-lbl">${c.icon} ${c.name}</div></div><span class="srow-action" style="color:var(--pink)" onclick="deleteCategoryConfirm('${c.id}')">✕</span></div>`).join('')}
-
-// ✅ NUEVA CATEGORÍA con modal propio
-function addCategory(){
-  document.getElementById('newcat-name').value='';
-  selectedEmoji='📌';
-  document.getElementById('newcat-icon').value='📌';
-  const grid=document.getElementById('emoji-grid');
-  grid.innerHTML=EMOJI_OPTIONS.map(e=>`<button class="emoji-opt${e==='📌'?' selected':''}" onclick="selectEmoji(this,'${e}')">${e}</button>`).join('');
-  openOverlay('newcat-overlay');
-}
-
-function selectEmoji(el,emoji){
-  selectedEmoji=emoji;
-  document.getElementById('newcat-icon').value=emoji;
-  document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function saveNewCategory(){
-  const name=document.getElementById('newcat-name').value.trim();
-  if(!name){toast('Escribe un nombre','err');return}
-  const icon=document.getElementById('newcat-icon').value||'📌';
-  const id=name.toLowerCase().replace(/[^a-z0-9áéíóúñ]/g,'_').replace(/[áéíóúñ]/g,c=>({á:'a',é:'e',í:'i',ó:'o',ú:'u',ñ:'n'}[c]||c));
-  if(S.categories.find(c=>c.id===id)){toast('Ya existe esa categoría','err');return}
-  const colors=['#ff5a7e','#3b9eff','#ffd166','#a78bfa','#00e5b3','#ff8a65','#4dd0e1','#ba68c8','#ef5350','#8d6e63','#ec407a','#78909c'];
-  S.categories.push({id,name,icon,color:colors[S.categories.length%colors.length]});
-  saveState();closeOverlay('newcat-overlay');renderPage();toast('Categoría creada ✅');
-}
-
-// ✅ ELIMINAR CATEGORÍA con confirm propio
-function deleteCategoryConfirm(id){
-  const c=getCat(id);
-  customConfirm('¿Eliminar "'+c.name+'"?','Se eliminará la categoría. Los movimientos existentes no se borran.',function(){
-    S.categories=S.categories.filter(c=>c.id!==id);
-    saveState();renderPage();toast('Categoría eliminada');
-  });
-}
-
-// ✅ RENOMBRAR USUARIO con modal propio
-function renameUser(n){
-  const current=n===1?S.users.u1:S.users.u2;
-  document.getElementById('rename-sub').textContent='Nombre actual: '+current;
-  document.getElementById('rename-input').value=current;
-  document.getElementById('rename-num').value=n;
-  openOverlay('rename-overlay');
-}
-
-function saveRename(){
-  const name=document.getElementById('rename-input').value.trim();
-  if(!name){toast('Escribe un nombre','err');return}
-  const n=parseInt(document.getElementById('rename-num').value);
-  if(n===1)S.users.u1=name;else S.users.u2=name;
-  saveState();closeOverlay('rename-overlay');updateUserNames();
-  if(currentUser)document.getElementById('hdr-name').textContent=uName(currentUser);
-  renderPage();toast('Nombre actualizado ✅');
-}
-
-// ✅ CAMBIAR PIN con modal propio
-function changePin(){
-  document.getElementById('new-pin-input').value='';
-  openOverlay('pin-overlay');
-}
-
-function saveNewPin(){
-  const p=document.getElementById('new-pin-input').value;
-  if(!p||!/^\d{4}$/.test(p)){toast('El PIN debe ser de 4 dígitos','err');return}
-  S.pin=p;saveState();closeOverlay('pin-overlay');toast('PIN cambiado ✅');
-}
+function addCategory(){document.getElementById('newcat-name').value='';selectedEmoji='📌';document.getElementById('newcat-icon').value='📌';document.getElementById('emoji-grid').innerHTML=EMOJI_OPTIONS.map(e=>`<button class="emoji-opt${e==='📌'?' selected':''}" onclick="selectEmoji(this,'${e}')">${e}</button>`).join('');openOverlay('newcat-overlay')}
+function selectEmoji(el,emoji){selectedEmoji=emoji;document.getElementById('newcat-icon').value=emoji;document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));el.classList.add('selected')}
+function saveNewCategory(){const name=document.getElementById('newcat-name').value.trim();if(!name){toast('Escribe un nombre','err');return}const icon=document.getElementById('newcat-icon').value||'📌',id=name.toLowerCase().replace(/[^a-z0-9áéíóúñ]/g,'_').replace(/[áéíóúñ]/g,c=>({á:'a',é:'e',í:'i',ó:'o',ú:'u',ñ:'n'}[c]||c));if(S.categories.find(c=>c.id===id)){toast('Ya existe esa categoría','err');return}const colors=['#ff5a7e','#3b9eff','#ffd166','#a78bfa','#00e5b3','#ff8a65','#4dd0e1','#ba68c8','#ef5350','#8d6e63','#ec407a','#78909c'];S.categories.push({id,name,icon,color:colors[S.categories.length%colors.length]});saveState();closeOverlay('newcat-overlay');renderPage();toast('Categoría creada ✅')}
+function deleteCategoryConfirm(id){const c=getCat(id);customConfirm('¿Eliminar "'+c.name+'"?','Los movimientos existentes no se borran.',function(){S.categories=S.categories.filter(c=>c.id!==id);saveState();renderPage();toast('Categoría eliminada')})}
+function renameUser(n){const current=n===1?S.users.u1:S.users.u2;document.getElementById('rename-sub').textContent='Nombre actual: '+current;document.getElementById('rename-input').value=current;document.getElementById('rename-num').value=n;openOverlay('rename-overlay')}
+function saveRename(){const name=document.getElementById('rename-input').value.trim();if(!name){toast('Escribe un nombre','err');return}const n=parseInt(document.getElementById('rename-num').value);if(n===1)S.users.u1=name;else S.users.u2=name;saveState();closeOverlay('rename-overlay');updateUserNames();if(currentUser)document.getElementById('hdr-name').textContent=uName(currentUser);renderPage();toast('Nombre actualizado ✅')}
+function changePin(){document.getElementById('new-pin-input').value='';openOverlay('pin-overlay')}
+function saveNewPin(){const p=document.getElementById('new-pin-input').value;if(!p||!/^\d{4}$/.test(p)){toast('El PIN debe ser de 4 dígitos','err');return}S.pin=p;saveState();closeOverlay('pin-overlay');toast('PIN cambiado ✅')}
 
 /* ═══════════════════════════════════════════════════
    EXPORT
    ═══════════════════════════════════════════════════ */
 function exportExcel(){try{const data=activeItems(S.movements).map(m=>({Fecha:m.date,Tipo:m.type,Importe:m.amount,Usuario:uName(m.user),Categoría:getCat(m.category).name,Subcategoría:m.subcat||'',Descripción:m.desc||'',Método:m.method||''}));const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Movimientos');XLSX.writeFile(wb,'GG_Finances_'+mkk(viewYear,viewMonth)+'.xlsx');toast('Excel descargado ✅')}catch(e){toast('Error al exportar','err')}}
 function exportCSV(){try{const h='Fecha,Tipo,Importe,Usuario,Categoría,Subcategoría,Descripción,Método\n',rows=activeItems(S.movements).map(m=>`${m.date},${m.type},${m.amount},${uName(m.user)},${getCat(m.category).name},${m.subcat||''},${m.desc||''},${m.method||''}`).join('\n');const blob=new Blob([h+rows],{type:'text/csv;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='GG_Finances_'+mkk(viewYear,viewMonth)+'.csv';a.click();toast('CSV descargado ✅')}catch(e){toast('Error','err')}}
-
-function clearAllData(){
-  customConfirm('⚠️ ¿Borrar TODOS los datos?','Esta acción es irreversible. Se eliminarán todos los movimientos, presupuestos y configuraciones.',function(){
-    S=defaultState();S.lastModified=Date.now();
-    localStorage.setItem('gg_finances',JSON.stringify(S));
-    if(firebaseReady&&dbRef)dbRef.set(S);
-    renderPage();toast('Datos eliminados');
-  });
-}
+function clearAllData(){customConfirm('⚠️ ¿Borrar TODOS los datos?','Esta acción es irreversible.',function(){S=defaultState();S.lastModified=Date.now();localStorage.setItem('gg_finances',JSON.stringify(S));if(firebaseReady&&dbRef)dbRef.set(S);renderPage();toast('Datos eliminados')})}
 
 /* ═══════════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════════ */
-loadState();updateUserNames();startRealtimeSync();
+loadState();
+// Migración automática de categorías (solo se ejecuta 1 vez)
+if(!S._catMigration43){migrateCategories();saveState()}
+updateUserNames();
+startRealtimeSync();
 document.querySelectorAll('.overlay').forEach(ov=>{ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open')})});
 </script>
 </body>
