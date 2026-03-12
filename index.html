@@ -251,7 +251,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
       <div class="sgroup"><div class="sgroup-title">SEGURIDAD</div><div class="srow"><div><div class="srow-lbl">PIN de acceso</div><div class="srow-sub">Cambia tu PIN de 4 dígitos</div></div><span class="srow-action" onclick="changePin()">Cambiar</span></div></div>
       <div class="sgroup"><div class="sgroup-title">CATEGORÍAS</div><div id="cat-settings-list"></div><div class="srow"><div><div class="srow-lbl">Nueva categoría</div></div><span class="srow-action" onclick="addCategory()">+ Añadir</span></div></div>
       <div class="sgroup"><div class="sgroup-title">DATOS</div><div class="srow"><div><div class="srow-lbl">Exportar Excel</div></div><span class="srow-action" onclick="exportExcel()">📊</span></div><div class="srow"><div><div class="srow-lbl">Exportar CSV</div></div><span class="srow-action" onclick="exportCSV()">📄</span></div><div class="srow"><div><div class="srow-lbl" style="color:var(--pink)">Borrar todos los datos</div></div><span class="srow-action" style="color:var(--pink)" onclick="clearAllData()">Borrar</span></div></div>
-      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v3.0 · Sync Firebase 🔄<br>Datos compartidos entre dispositivos</p>
+      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v3.1 · Sync Firebase 🔄<br>Datos compartidos entre dispositivos</p>
     </div>
   </div>
   <nav class="bnav">
@@ -427,9 +427,13 @@ function manualSync(){
 function loadState(){try{const r=localStorage.getItem('gg_finances');if(r){S={...defaultState(),...JSON.parse(r)};if(!S.categories||!S.categories.length)S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));}}catch(e){}}
 
 /* ═══════════════════════════════════════════════════
-   UTILITIES
+   UTILITIES  ✅ CORREGIDO - fmtBalance con signo
    ═══════════════════════════════════════════════════ */
 function fmt(n){return'€'+Math.abs(n).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtBalance(n){
+  const prefix=n<0?'-€':'€';
+  return prefix+Math.abs(n).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 function fmtS(n){return Math.abs(n)>=1000?'€'+(Math.abs(n)/1000).toFixed(1)+'k':'€'+Math.abs(n).toFixed(0)}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
 function mkk(y,m){return y+'-'+String(m+1).padStart(2,'0')}
@@ -566,16 +570,19 @@ function renderPage(){
 }
 
 /* ═══════════════════════════════════════════════════
-   DASHBOARD
+   DASHBOARD  ✅ CORREGIDO - usa fmtBalance
    ═══════════════════════════════════════════════════ */
 function renderDashboard(){
   const movs=mMovs();
   const income=movs.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0);
   const expense=movs.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0);
   const balance=income-expense;
+
+  // ✅ CORRECCIÓN PRINCIPAL: usar fmtBalance para mostrar signo negativo
   const safeEl=document.getElementById('safe-spend');
-  safeEl.textContent=fmt(balance);
+  safeEl.textContent=fmtBalance(balance);
   safeEl.className='safe-amount'+(balance<0?' negative':'');
+
   document.getElementById('s-income').textContent=fmtS(income);
   document.getElementById('s-spent').textContent=fmtS(expense);
   const savPct=income>0?Math.round(((income-expense)/income)*100):0;
@@ -903,6 +910,7 @@ function renderMonthlyReport(body){
   const movs=mMovs();
   const inc=movs.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0);
   const exp=movs.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0);
+  const bal=inc-exp;
   const gastos=movs.filter(m=>m.type==='gasto');
   const catTotals={};
   gastos.forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});
@@ -912,7 +920,7 @@ function renderMonthlyReport(body){
     <div class="card"><div class="card-title" style="margin-bottom:14px">Resumen ${MONTHS[viewMonth]} ${viewYear}</div>
       <div class="rrow"><span class="rrow-l">💰 Ingresos</span><span class="rrow-v" style="color:var(--mint)">${fmt(inc)}</span></div>
       <div class="rrow"><span class="rrow-l">💸 Gastos</span><span class="rrow-v" style="color:var(--pink)">${fmt(exp)}</span></div>
-      <div class="rrow"><span class="rrow-l">📊 Balance</span><span class="rrow-v" style="color:${inc-exp>=0?'var(--mint)':'var(--pink)'}">${fmt(inc-exp)}</span></div>
+      <div class="rrow"><span class="rrow-l">📊 Balance</span><span class="rrow-v" style="color:${bal>=0?'var(--mint)':'var(--pink)'}">${fmtBalance(bal)}</span></div>
       <div class="rrow"><span class="rrow-l">📋 Movimientos</span><span class="rrow-v">${movs.length}</span></div>
       <div class="rrow"><span class="rrow-l">📅 Gasto diario medio</span><span class="rrow-v" style="color:var(--pink)">${fmt(exp/(new Date(viewYear,viewMonth+1,0).getDate()))}</span></div>
     </div>
@@ -930,13 +938,14 @@ function renderUsersReport(body){
     const uMovs=movs.filter(m=>m.user===u);
     const uInc=uMovs.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0);
     const uExp=uMovs.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0);
+    const uBal=uInc-uExp;
     const catTotals={};
     uMovs.filter(m=>m.type==='gasto').forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});
     const topCats=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,3);
     return `<div class="card"><div class="card-title" style="margin-bottom:14px">${u==='gustavo'?'👨':'👩'} ${uName(u)}</div>
       <div class="rrow"><span class="rrow-l">Ingresos</span><span class="rrow-v" style="color:var(--mint)">${fmt(uInc)}</span></div>
       <div class="rrow"><span class="rrow-l">Gastos</span><span class="rrow-v" style="color:var(--pink)">${fmt(uExp)}</span></div>
-      <div class="rrow"><span class="rrow-l">Balance</span><span class="rrow-v" style="color:${uInc-uExp>=0?'var(--mint)':'var(--pink)'}">${fmt(uInc-uExp)}</span></div>
+      <div class="rrow"><span class="rrow-l">Balance</span><span class="rrow-v" style="color:${uBal>=0?'var(--mint)':'var(--pink)'}">${fmtBalance(uBal)}</span></div>
       <div class="rrow"><span class="rrow-l">Movimientos</span><span class="rrow-v">${uMovs.length}</span></div>
       ${topCats.length?'<div style="margin-top:8px;font-size:11px;color:var(--text2)">Top categorías:</div>':''}
       ${topCats.map(([id,t])=>`<div class="rrow"><span class="rrow-l">${getCat(id).icon} ${getCat(id).name}</span><span class="rrow-v">${fmt(t)}</span></div>`).join('')}
@@ -954,10 +963,11 @@ function renderAnnualReport(body){
     totalInc+=inc;totalExp+=exp;
     if(inc||exp){html+=`<div class="rrow"><span class="rrow-l">${MONTHS[m]}</span><span class="rrow-v"><span style="color:var(--mint)">${fmtS(inc)}</span> / <span style="color:var(--pink)">${fmtS(exp)}</span></span></div>`;}
   }
+  const annualBal=totalInc-totalExp;
   html+=`<div style="border-top:2px solid var(--border);margin-top:8px;padding-top:8px">
     <div class="rrow"><span class="rrow-l"><strong>Total Ingresos</strong></span><span class="rrow-v" style="color:var(--mint)">${fmt(totalInc)}</span></div>
     <div class="rrow"><span class="rrow-l"><strong>Total Gastos</strong></span><span class="rrow-v" style="color:var(--pink)">${fmt(totalExp)}</span></div>
-    <div class="rrow"><span class="rrow-l"><strong>Balance Anual</strong></span><span class="rrow-v" style="color:${totalInc-totalExp>=0?'var(--mint)':'var(--pink)'}">${fmt(totalInc-totalExp)}</span></div>
+    <div class="rrow"><span class="rrow-l"><strong>Balance Anual</strong></span><span class="rrow-v" style="color:${annualBal>=0?'var(--mint)':'var(--pink)'}">${fmtBalance(annualBal)}</span></div>
   </div></div>`;
   body.innerHTML=html;
 }
