@@ -164,6 +164,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .toast.show{transform:translateX(-50%) translateY(0)}.toast.ok{border-color:rgba(0,229,179,.3);color:var(--mint)}.toast.err{border-color:rgba(255,90,126,.3);color:var(--pink)}
 .empty{text-align:center;padding:44px 20px;color:var(--text2)}.empty-ico{font-size:44px;margin-bottom:14px;opacity:.6}.empty p{font-size:14px}
 .page{animation:fadeUp .35s ease}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;max-height:180px;overflow-y:auto;margin-top:8px;scrollbar-width:none}.emoji-grid::-webkit-scrollbar{display:none}
+.emoji-opt{width:100%;aspect-ratio:1;border-radius:10px;border:2px solid var(--border);background:var(--card);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.emoji-opt:hover,.emoji-opt.selected{border-color:var(--mint);background:rgba(0,229,179,.1);transform:scale(1.1)}
 @media(min-width:768px){.app-content{max-width:520px;margin:0 auto;padding:0 24px 108px}.bnav{max-width:520px;left:50%;transform:translateX(-50%);border-radius:22px 22px 0 0;border:1px solid var(--border)}.modal{max-width:520px;margin:0 auto}.overlay{justify-content:center;align-items:flex-end}}
 </style></head>
 <body>
@@ -251,7 +254,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
       <div class="sgroup"><div class="sgroup-title">SEGURIDAD</div><div class="srow"><div><div class="srow-lbl">PIN de acceso</div><div class="srow-sub">Cambia tu PIN de 4 dígitos</div></div><span class="srow-action" onclick="changePin()">Cambiar</span></div></div>
       <div class="sgroup"><div class="sgroup-title">CATEGORÍAS</div><div id="cat-settings-list"></div><div class="srow"><div><div class="srow-lbl">Nueva categoría</div></div><span class="srow-action" onclick="addCategory()">+ Añadir</span></div></div>
       <div class="sgroup"><div class="sgroup-title">DATOS</div><div class="srow"><div><div class="srow-lbl">Exportar Excel</div></div><span class="srow-action" onclick="exportExcel()">📊</span></div><div class="srow"><div><div class="srow-lbl">Exportar CSV</div></div><span class="srow-action" onclick="exportCSV()">📄</span></div><div class="srow"><div><div class="srow-lbl" style="color:var(--pink)">Borrar todos los datos</div></div><span class="srow-action" style="color:var(--pink)" onclick="clearAllData()">Borrar</span></div></div>
-      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v4.1 · Smart Sync + Soft Delete 🔄<br>Datos compartidos entre dispositivos</p>
+      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v4.2 · Smart Sync + Modals 🔄<br>Datos compartidos entre dispositivos</p>
     </div>
   </div>
   <nav class="bnav">
@@ -329,21 +332,57 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
   <button class="btn btn-ghost btn-mt" onclick="closeOverlay('savings-overlay')">Cancelar</button>
 </div></div>
 
+<!-- MODAL: Nueva categoría -->
+<div class="overlay" id="newcat-overlay"><div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Nueva categoría</div>
+  <div class="modal-sub">Elige un nombre y un icono</div>
+  <div class="fgroup"><label class="flabel">Nombre</label><input class="finput" id="newcat-name" placeholder="Ej: Gasolina, Viajes..."></div>
+  <div class="fgroup"><label class="flabel">Icono</label>
+    <div class="emoji-grid" id="emoji-grid"></div>
+    <input type="hidden" id="newcat-icon" value="📌">
+  </div>
+  <button class="btn btn-primary" onclick="saveNewCategory()">Crear categoría</button>
+  <button class="btn btn-ghost btn-mt" onclick="closeOverlay('newcat-overlay')">Cancelar</button>
+</div></div>
+
+<!-- MODAL: Renombrar usuario -->
+<div class="overlay" id="rename-overlay"><div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Cambiar nombre</div>
+  <div class="modal-sub" id="rename-sub">Nuevo nombre para el usuario</div>
+  <div class="fgroup"><label class="flabel">Nombre</label><input class="finput" id="rename-input" placeholder="Escribe el nuevo nombre..."></div>
+  <input type="hidden" id="rename-num">
+  <button class="btn btn-primary" onclick="saveRename()">Guardar</button>
+  <button class="btn btn-ghost btn-mt" onclick="closeOverlay('rename-overlay')">Cancelar</button>
+</div></div>
+
+<!-- MODAL: Cambiar PIN -->
+<div class="overlay" id="pin-overlay"><div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-title">Cambiar PIN</div>
+  <div class="modal-sub">Introduce un nuevo PIN de 4 dígitos</div>
+  <div class="fgroup"><label class="flabel">Nuevo PIN</label><input class="finput big" id="new-pin-input" type="number" inputmode="numeric" maxlength="4" placeholder="0000" style="text-align:center;letter-spacing:12px"></div>
+  <button class="btn btn-primary" onclick="saveNewPin()">Guardar PIN</button>
+  <button class="btn btn-ghost btn-mt" onclick="closeOverlay('pin-overlay')">Cancelar</button>
+</div></div>
+
+<!-- MODAL: Confirmar borrado -->
+<div class="overlay" id="confirm-overlay"><div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-title" id="confirm-title">¿Estás seguro?</div>
+  <div class="modal-sub" id="confirm-sub"></div>
+  <button class="btn btn-danger" id="confirm-btn" onclick="">Confirmar</button>
+  <button class="btn btn-ghost btn-mt" onclick="closeOverlay('confirm-overlay')">Cancelar</button>
+</div></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 /* ═══════════════════════════════════════════════════
    🔥 FIREBASE CONFIG
    ═══════════════════════════════════════════════════ */
-const firebaseConfig={
-  apiKey:"AIzaSyBBLB80afr29DgXmEjSifkLO_9ZEprxYec",
-  authDomain:"canetinha-gg.firebaseapp.com",
-  databaseURL:"https://canetinha-gg-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:"canetinha-gg",
-  storageBucket:"canetinha-gg.firebasestorage.app",
-  messagingSenderId:"197868616428",
-  appId:"1:197868616428:web:9e8908c15da8179e2143c9"
-};
+const firebaseConfig={apiKey:"AIzaSyBBLB80afr29DgXmEjSifkLO_9ZEprxYec",authDomain:"canetinha-gg.firebaseapp.com",databaseURL:"https://canetinha-gg-default-rtdb.europe-west1.firebasedatabase.app",projectId:"canetinha-gg",storageBucket:"canetinha-gg.firebasestorage.app",messagingSenderId:"197868616428",appId:"1:197868616428:web:9e8908c15da8179e2143c9"};
 let firebaseReady=false,dbRef=null;
 try{firebase.initializeApp(firebaseConfig);dbRef=firebase.database().ref('gg_finances');firebaseReady=true}catch(e){console.warn('Firebase error:',e.message)}
 
@@ -364,92 +403,24 @@ const DEFAULT_CATS=[
   {id:'regalos',name:'Regalos',icon:'🎁',color:'#ec407a'},
   {id:'otros',name:'Otros',icon:'📦',color:'#78909c'}
 ];
+const EMOJI_OPTIONS=['🛒','🚗','🏠','🎬','💊','👕','📚','📱','🍽️','🐾','🎁','📦','⛽','✈️','🏋️','💇','🎮','🍺','☕','🧹','💡','📞','🎵','🏥','💻','🔧','🎂','🧸','🚌','🏦','🎓','🛍️','🧴','🍕','🎭','⚽','🏖️','💐','🪥','🧊'];
 function defaultState(){return{pin:'1221',users:{u1:'Gustavo',u2:'Gabrielle'},categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),movements:[],budgets:{},goals:[],savings:[],lastModified:0}}
-
 let S=defaultState();
-let currentUser=null,viewMonth=new Date().getMonth(),viewYear=new Date().getFullYear(),currentPage='dashboard',histFilter='all',movType='gasto',pieChart=null,barChart=null,catOvTab='month',catOvCat=null,reportTab='monthly',isSyncing=false,initialSyncDone=false;
+let currentUser=null,viewMonth=new Date().getMonth(),viewYear=new Date().getFullYear(),currentPage='dashboard',histFilter='all',movType='gasto',pieChart=null,barChart=null,catOvTab='month',catOvCat=null,reportTab='monthly',isSyncing=false,initialSyncDone=false,selectedEmoji='📌';
 const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 /* ═══════════════════════════════════════════════════
-   🔄 SMART SYNC ENGINE v4.1
-   - Soft delete: _deleted + ts para que merge respete borrados
-   - Firebase = fuente de verdad, merge inteligente
+   🔄 SMART SYNC ENGINE v4.2
    ═══════════════════════════════════════════════════ */
-function mergeById(local,remote){
-  const m=new Map();
-  (local||[]).forEach(i=>{if(i&&i.id)m.set(i.id,i)});
-  (remote||[]).forEach(i=>{
-    if(i&&i.id){
-      const existing=m.get(i.id);
-      if(existing&&existing.ts&&i.ts){
-        if(i.ts>=existing.ts)m.set(i.id,i);
-      }else if(!existing){m.set(i.id,i)}
-    }
-  });
-  return Array.from(m.values());
-}
+function mergeById(local,remote){const m=new Map();(local||[]).forEach(i=>{if(i&&i.id)m.set(i.id,i)});(remote||[]).forEach(i=>{if(i&&i.id){const ex=m.get(i.id);if(ex&&ex.ts&&i.ts){if(i.ts>=ex.ts)m.set(i.id,i)}else if(!ex){m.set(i.id,i)}}});return Array.from(m.values())}
 function activeItems(arr){return(arr||[]).filter(i=>!i._deleted)}
 function mergeBudgets(l,r){const m={...(l||{})};Object.keys(r||{}).forEach(k=>{m[k]=m[k]?{...m[k],...(r[k]||{})}:(r[k]||{})});return m}
-function mergeStates(local,remote){
-  if(!remote)return local;
-  const merged={...local};
-  if((remote.lastModified||0)>=(local.lastModified||0)){merged.pin=remote.pin||local.pin;merged.users=remote.users||local.users}
-  if(remote.categories&&remote.categories.length)merged.categories=remote.categories;
-  merged.movements=mergeById(local.movements,remote.movements);
-  merged.goals=mergeById(local.goals,remote.goals);
-  merged.savings=mergeById(local.savings,remote.savings);
-  merged.budgets=mergeBudgets(local.budgets,remote.budgets);
-  merged.lastModified=Math.max(local.lastModified||0,remote.lastModified||0);
-  return merged;
-}
-
-function saveState(){
-  S.lastModified=Date.now();
-  localStorage.setItem('gg_finances',JSON.stringify(S));
-  if(firebaseReady&&dbRef){
-    setSyncStatus('syncing');
-    dbRef.once('value').then(snapshot=>{
-      const remote=snapshot.val();
-      if(remote){const merged=mergeStates(S,remote);S=merged;localStorage.setItem('gg_finances',JSON.stringify(S))}
-      return dbRef.set(S);
-    }).then(()=>setSyncStatus('online')).catch(err=>{console.warn('Sync error:',err);setSyncStatus('offline')});
-  }
-}
-
-function manualSync(){
-  if(!firebaseReady||!dbRef){toast('Firebase no disponible','err');return}
-  setSyncStatus('syncing');
-  dbRef.once('value').then(snapshot=>{
-    const remote=snapshot.val();
-    if(remote)S=mergeStates(S,remote);
-    S.lastModified=Date.now();
-    localStorage.setItem('gg_finances',JSON.stringify(S));
-    return dbRef.set(S);
-  }).then(()=>{setSyncStatus('online');updateUserNames();renderPage();toast('Sincronizado correctamente ✅')}).catch(err=>{console.warn('Manual sync error:',err);setSyncStatus('offline');toast('Error de conexión','err')});
-}
-
-function startRealtimeSync(){
-  if(!firebaseReady||!dbRef){setSyncStatus('offline');const el=document.getElementById('set-sync-status');if(el)el.textContent='Solo local (sin Firebase)';return}
-  firebase.database().ref('.info/connected').on('value',snap=>{
-    setSyncStatus(snap.val()?'online':'offline');
-    const el=document.getElementById('set-sync-status');if(el)el.textContent=snap.val()?'🟢 Conectado en tiempo real':'🔴 Sin conexión';
-  });
-  dbRef.on('value',snapshot=>{
-    if(isSyncing)return;const remote=snapshot.val();if(!remote)return;
-    isSyncing=true;
-    if(!initialSyncDone){S=mergeStates(S,remote);localStorage.setItem('gg_finances',JSON.stringify(S));initialSyncDone=true}
-    else{const bc=activeItems(S.movements).length;S=mergeStates(S,remote);localStorage.setItem('gg_finances',JSON.stringify(S));if(activeItems(S.movements).length!==bc)toast('Datos sincronizados 🔄')}
-    updateUserNames();renderPage();isSyncing=false;
-  });
-}
-
-function setSyncStatus(s){
-  const dot=document.getElementById('sync-dot');if(dot)dot.className='sync-indicator sync-'+s;
-  const st=document.getElementById('sync-status');
-  if(st){if(s==='online')st.innerHTML='<span style="color:var(--mint)">🟢 Sincronizado</span>';else if(s==='offline')st.innerHTML='<span style="color:var(--pink)">🔴 Sin conexión</span>';else st.innerHTML='<span style="color:var(--gold)">🟡 Sincronizando...</span>'}
-}
-
-function loadState(){try{const r=localStorage.getItem('gg_finances');if(r){S={...defaultState(),...JSON.parse(r)};if(!S.categories||!S.categories.length)S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));if(!S.lastModified)S.lastModified=0}}catch(e){console.warn('Load error:',e)}}
+function mergeStates(local,remote){if(!remote)return local;const merged={...local};if((remote.lastModified||0)>=(local.lastModified||0)){merged.pin=remote.pin||local.pin;merged.users=remote.users||local.users}if(remote.categories&&remote.categories.length)merged.categories=remote.categories;merged.movements=mergeById(local.movements,remote.movements);merged.goals=mergeById(local.goals,remote.goals);merged.savings=mergeById(local.savings,remote.savings);merged.budgets=mergeBudgets(local.budgets,remote.budgets);merged.lastModified=Math.max(local.lastModified||0,remote.lastModified||0);return merged}
+function saveState(){S.lastModified=Date.now();localStorage.setItem('gg_finances',JSON.stringify(S));if(firebaseReady&&dbRef){setSyncStatus('syncing');dbRef.once('value').then(snap=>{const r=snap.val();if(r){S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S))}return dbRef.set(S)}).then(()=>setSyncStatus('online')).catch(e=>{console.warn('Sync:',e);setSyncStatus('offline')})}}
+function manualSync(){if(!firebaseReady||!dbRef){toast('Firebase no disponible','err');return}setSyncStatus('syncing');dbRef.once('value').then(snap=>{const r=snap.val();if(r)S=mergeStates(S,r);S.lastModified=Date.now();localStorage.setItem('gg_finances',JSON.stringify(S));return dbRef.set(S)}).then(()=>{setSyncStatus('online');updateUserNames();renderPage();toast('Sincronizado ✅')}).catch(e=>{setSyncStatus('offline');toast('Error de conexión','err')})}
+function startRealtimeSync(){if(!firebaseReady||!dbRef){setSyncStatus('offline');const el=document.getElementById('set-sync-status');if(el)el.textContent='Solo local';return}firebase.database().ref('.info/connected').on('value',s=>{setSyncStatus(s.val()?'online':'offline');const el=document.getElementById('set-sync-status');if(el)el.textContent=s.val()?'🟢 Conectado':'🔴 Sin conexión'});dbRef.on('value',snap=>{if(isSyncing)return;const r=snap.val();if(!r)return;isSyncing=true;if(!initialSyncDone){S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S));initialSyncDone=true}else{const bc=activeItems(S.movements).length;S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S));if(activeItems(S.movements).length!==bc)toast('Datos sincronizados 🔄')}updateUserNames();renderPage();isSyncing=false})}
+function setSyncStatus(s){const d=document.getElementById('sync-dot');if(d)d.className='sync-indicator sync-'+s;const st=document.getElementById('sync-status');if(st){if(s==='online')st.innerHTML='<span style="color:var(--mint)">🟢 Sincronizado</span>';else if(s==='offline')st.innerHTML='<span style="color:var(--pink)">🔴 Sin conexión</span>';else st.innerHTML='<span style="color:var(--gold)">🟡 Sincronizando...</span>'}}
+function loadState(){try{const r=localStorage.getItem('gg_finances');if(r){S={...defaultState(),...JSON.parse(r)};if(!S.categories||!S.categories.length)S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));if(!S.lastModified)S.lastModified=0}}catch(e){}}
 
 /* ═══════════════════════════════════════════════════
    UTILITIES
@@ -463,6 +434,17 @@ function mMovs(y,m){return activeItems(S.movements).filter(mv=>mv.date&&mv.date.
 function getCat(id){return S.categories.find(c=>c.id===id)||{id:'otros',name:'Otros',icon:'📦',color:'#78909c'}}
 function uName(u){return u==='gustavo'?S.users.u1:S.users.u2}
 function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;setTimeout(()=>t.classList.add('show'),10);setTimeout(()=>t.classList.remove('show'),2800)}
+
+/* ═══════════════════════════════════════════════════
+   CUSTOM CONFIRM (reemplazo de confirm nativo)
+   ═══════════════════════════════════════════════════ */
+function customConfirm(title,sub,callback){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-sub').textContent=sub;
+  const btn=document.getElementById('confirm-btn');
+  btn.onclick=function(){closeOverlay('confirm-overlay');callback()};
+  openOverlay('confirm-overlay');
+}
 
 /* ═══════════════════════════════════════════════════
    PIN
@@ -484,10 +466,6 @@ function updateUserNames(){const n1=S.users.u1,n2=S.users.u2;['u1name','opt-u1',
 function showPage(page){currentPage=page;document.querySelectorAll('.page').forEach(p=>p.style.display='none');const el=document.getElementById('page-'+page);if(el)el.style.display='block';document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));const nav=document.getElementById('nav-'+page);if(nav)nav.classList.add('active');document.getElementById('btn-back').style.display=page==='dashboard'?'none':'flex';document.getElementById('content').scrollTop=0;renderPage()}
 function goBack(){showPage('dashboard')}
 function changeMonth(dir){viewMonth+=dir;if(viewMonth>11){viewMonth=0;viewYear++}if(viewMonth<0){viewMonth=11;viewYear--}renderPage()}
-
-/* ═══════════════════════════════════════════════════
-   OVERLAYS
-   ═══════════════════════════════════════════════════ */
 function openOverlay(id){document.getElementById(id).classList.add('open')}
 function closeOverlay(id){document.getElementById(id).classList.remove('open')}
 
@@ -496,374 +474,186 @@ function closeOverlay(id){document.getElementById(id).classList.remove('open')}
    ═══════════════════════════════════════════════════ */
 function setMovType(t){movType=t;document.getElementById('tbtn-g').className='tbtn'+(t==='gasto'?' tg':'');document.getElementById('tbtn-i').className='tbtn'+(t==='ingreso'?' ti':'');document.getElementById('fg-cat').style.display=t==='gasto'?'block':'none';document.getElementById('fg-subcat').style.display=t==='gasto'?'block':'none';document.getElementById('fg-incat').style.display=t==='ingreso'?'block':'none'}
 function populateCatSelect(){document.getElementById('mov-cat').innerHTML=S.categories.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('')}
+function openAddMovement(){document.getElementById('mov-modal-title').textContent='Nuevo movimiento';document.getElementById('mov-modal-sub').textContent='Registra un gasto o ingreso';document.getElementById('mov-amt').value='';document.getElementById('mov-date').value=new Date().toISOString().split('T')[0];document.getElementById('mov-user').value=currentUser||'gustavo';document.getElementById('mov-subcat').value='';document.getElementById('mov-desc').value='';document.getElementById('mov-method').value='Tarjeta';document.getElementById('mov-edit-id').value='';setMovType('gasto');populateCatSelect();openOverlay('mov-overlay')}
+function openEditMovement(id){const mv=activeItems(S.movements).find(m=>m.id===id);if(!mv)return;document.getElementById('mov-modal-title').textContent='Editar movimiento';document.getElementById('mov-modal-sub').textContent='Modifica los datos';document.getElementById('mov-amt').value=mv.amount;document.getElementById('mov-date').value=mv.date;document.getElementById('mov-user').value=mv.user;document.getElementById('mov-desc').value=mv.desc||'';document.getElementById('mov-method').value=mv.method||'Tarjeta';document.getElementById('mov-edit-id').value=id;setMovType(mv.type);populateCatSelect();if(mv.type==='gasto'){document.getElementById('mov-cat').value=mv.category||'otros';document.getElementById('mov-subcat').value=mv.subcat||''}else{document.getElementById('mov-intype').value=mv.intype||'Sueldo'}openOverlay('mov-overlay')}
+function saveMovement(){const amt=parseFloat(document.getElementById('mov-amt').value);if(!amt||amt<=0){toast('Introduce un importe válido','err');return}const date=document.getElementById('mov-date').value;if(!date){toast('Selecciona una fecha','err');return}const editId=document.getElementById('mov-edit-id').value;const mv={id:editId||genId(),type:movType,amount:amt,date:date,user:document.getElementById('mov-user').value,category:movType==='gasto'?document.getElementById('mov-cat').value:'ingreso',subcat:movType==='gasto'?document.getElementById('mov-subcat').value:'',intype:movType==='ingreso'?document.getElementById('mov-intype').value:'',desc:document.getElementById('mov-desc').value,method:document.getElementById('mov-method').value,ts:Date.now()};if(editId){const idx=S.movements.findIndex(m=>m.id===editId);if(idx>=0)S.movements[idx]=mv}else{S.movements.push(mv)}saveState();closeOverlay('mov-overlay');renderPage();toast(editId?'Movimiento actualizado ✅':'Movimiento guardado ✅')}
 
-function openAddMovement(){
-  document.getElementById('mov-modal-title').textContent='Nuevo movimiento';
-  document.getElementById('mov-modal-sub').textContent='Registra un gasto o ingreso';
-  document.getElementById('mov-amt').value='';
-  document.getElementById('mov-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('mov-user').value=currentUser||'gustavo';
-  document.getElementById('mov-subcat').value='';
-  document.getElementById('mov-desc').value='';
-  document.getElementById('mov-method').value='Tarjeta';
-  document.getElementById('mov-edit-id').value='';
-  setMovType('gasto');populateCatSelect();openOverlay('mov-overlay');
-}
-
-function openEditMovement(id){
-  const mv=activeItems(S.movements).find(m=>m.id===id);if(!mv)return;
-  document.getElementById('mov-modal-title').textContent='Editar movimiento';
-  document.getElementById('mov-modal-sub').textContent='Modifica los datos';
-  document.getElementById('mov-amt').value=mv.amount;
-  document.getElementById('mov-date').value=mv.date;
-  document.getElementById('mov-user').value=mv.user;
-  document.getElementById('mov-desc').value=mv.desc||'';
-  document.getElementById('mov-method').value=mv.method||'Tarjeta';
-  document.getElementById('mov-edit-id').value=id;
-  setMovType(mv.type);populateCatSelect();
-  if(mv.type==='gasto'){document.getElementById('mov-cat').value=mv.category||'otros';document.getElementById('mov-subcat').value=mv.subcat||''}
-  else{document.getElementById('mov-intype').value=mv.intype||'Sueldo'}
-  openOverlay('mov-overlay');
-}
-
-function saveMovement(){
-  const amt=parseFloat(document.getElementById('mov-amt').value);
-  if(!amt||amt<=0){toast('Introduce un importe válido','err');return}
-  const date=document.getElementById('mov-date').value;
-  if(!date){toast('Selecciona una fecha','err');return}
-  const editId=document.getElementById('mov-edit-id').value;
-  const mv={id:editId||genId(),type:movType,amount:amt,date:date,user:document.getElementById('mov-user').value,category:movType==='gasto'?document.getElementById('mov-cat').value:'ingreso',subcat:movType==='gasto'?document.getElementById('mov-subcat').value:'',intype:movType==='ingreso'?document.getElementById('mov-intype').value:'',desc:document.getElementById('mov-desc').value,method:document.getElementById('mov-method').value,ts:Date.now()};
-  if(editId){const idx=S.movements.findIndex(m=>m.id===editId);if(idx>=0)S.movements[idx]=mv}else{S.movements.push(mv)}
-  saveState();closeOverlay('mov-overlay');renderPage();
-  toast(editId?'Movimiento actualizado ✅':'Movimiento guardado ✅');
-}
-
-/* ✅ SOFT DELETE - marca _deleted en vez de eliminar */
 function deleteMovement(id){
-  if(!confirm('¿Eliminar este movimiento?'))return;
-  const idx=S.movements.findIndex(m=>m.id===id);
-  if(idx>=0){S.movements[idx]._deleted=true;S.movements[idx].ts=Date.now()}
-  saveState();renderPage();toast('Movimiento eliminado ✅');
+  customConfirm('¿Eliminar movimiento?','Esta acción no se puede deshacer',function(){
+    const idx=S.movements.findIndex(m=>m.id===id);
+    if(idx>=0){S.movements[idx]._deleted=true;S.movements[idx].ts=Date.now()}
+    saveState();renderPage();toast('Movimiento eliminado ✅');
+  });
 }
 
 function deleteGoal(id){
-  if(!confirm('¿Eliminar este objetivo?'))return;
-  const idx=S.goals.findIndex(g=>g.id===id);
-  if(idx>=0){S.goals[idx]._deleted=true;S.goals[idx].ts=Date.now()}
-  saveState();renderPage();toast('Objetivo eliminado');
+  customConfirm('¿Eliminar objetivo?','Se eliminará este objetivo de ahorro',function(){
+    const idx=S.goals.findIndex(g=>g.id===id);
+    if(idx>=0){S.goals[idx]._deleted=true;S.goals[idx].ts=Date.now()}
+    saveState();renderPage();toast('Objetivo eliminado');
+  });
 }
 
 /* ═══════════════════════════════════════════════════
    RENDER PAGE ROUTER
    ═══════════════════════════════════════════════════ */
-function renderPage(){
-  const ml=MONTHS[viewMonth]+' '+viewYear;
-  ['dash-month','hist-month','budg-month'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=ml});
-  const pml=document.getElementById('pie-month-lbl');if(pml)pml.textContent=ml;
-  if(currentPage==='dashboard')renderDashboard();
-  else if(currentPage==='history')renderHistory();
-  else if(currentPage==='budget')renderBudget();
-  else if(currentPage==='reports')renderReports();
-  else if(currentPage==='savings')renderSavings();
-  else if(currentPage==='settings')renderSettings();
-}
+function renderPage(){const ml=MONTHS[viewMonth]+' '+viewYear;['dash-month','hist-month','budg-month'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=ml});const pml=document.getElementById('pie-month-lbl');if(pml)pml.textContent=ml;if(currentPage==='dashboard')renderDashboard();else if(currentPage==='history')renderHistory();else if(currentPage==='budget')renderBudget();else if(currentPage==='reports')renderReports();else if(currentPage==='savings')renderSavings();else if(currentPage==='settings')renderSettings()}
 
 /* ═══════════════════════════════════════════════════
    DASHBOARD
    ═══════════════════════════════════════════════════ */
-function renderDashboard(){
-  const movs=mMovs();
-  const income=movs.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0);
-  const expense=movs.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0);
-  const balance=income-expense;
-  const safeEl=document.getElementById('safe-spend');
-  safeEl.textContent=fmtBalance(balance);
-  safeEl.className='safe-amount'+(balance<0?' negative':'');
-  document.getElementById('s-income').textContent=fmtS(income);
-  document.getElementById('s-spent').textContent=fmtS(expense);
-  document.getElementById('s-saved').textContent=(income>0?Math.round(((income-expense)/income)*100):0)+'%';
-  const gExp=movs.filter(m=>m.type==='gasto'&&m.user==='gustavo').reduce((s,m)=>s+m.amount,0);
-  const gaExp=movs.filter(m=>m.type==='gasto'&&m.user==='gabrielle').reduce((s,m)=>s+m.amount,0);
-  document.getElementById('st-g').textContent=fmtS(gExp);
-  document.getElementById('st-ga').textContent=fmtS(gaExp);
-  document.getElementById('st-movs').textContent=movs.length;
-  const bk=mkk(viewYear,viewMonth),budgets=S.budgets[bk]||{};
-  const totalBudg=Object.values(budgets).reduce((s,v)=>s+(parseFloat(v)||0),0);
-  document.getElementById('st-budg').textContent=(totalBudg>0?Math.min(Math.round((expense/totalBudg)*100),999):0)+'%';
-  renderCatGrid(movs,budgets);
-  const gInc=movs.filter(m=>m.type==='ingreso'&&m.user==='gustavo').reduce((s,m)=>s+m.amount,0);
-  const gaInc=movs.filter(m=>m.type==='ingreso'&&m.user==='gabrielle').reduce((s,m)=>s+m.amount,0);
-  document.getElementById('du-g-exp').textContent=fmt(gExp);document.getElementById('du-g-inc').textContent=fmt(gInc);
-  document.getElementById('du-ga-exp').textContent=fmt(gaExp);document.getElementById('du-ga-inc').textContent=fmt(gaInc);
-  const tE=gExp+gaExp||1;
-  document.getElementById('du-bar-g').style.width=Math.round((gExp/tE)*100)+'%';
-  document.getElementById('du-bar-ga').style.width=Math.round((gaExp/tE)*100)+'%';
-  renderRecentMovs(movs);renderPieChart(movs);renderBarChart();
-}
+function renderDashboard(){const movs=mMovs(),income=movs.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0),expense=movs.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0),balance=income-expense;const safeEl=document.getElementById('safe-spend');safeEl.textContent=fmtBalance(balance);safeEl.className='safe-amount'+(balance<0?' negative':'');document.getElementById('s-income').textContent=fmtS(income);document.getElementById('s-spent').textContent=fmtS(expense);document.getElementById('s-saved').textContent=(income>0?Math.round(((income-expense)/income)*100):0)+'%';const gExp=movs.filter(m=>m.type==='gasto'&&m.user==='gustavo').reduce((s,m)=>s+m.amount,0),gaExp=movs.filter(m=>m.type==='gasto'&&m.user==='gabrielle').reduce((s,m)=>s+m.amount,0);document.getElementById('st-g').textContent=fmtS(gExp);document.getElementById('st-ga').textContent=fmtS(gaExp);document.getElementById('st-movs').textContent=movs.length;const bk=mkk(viewYear,viewMonth),budgets=S.budgets[bk]||{},totalBudg=Object.values(budgets).reduce((s,v)=>s+(parseFloat(v)||0),0);document.getElementById('st-budg').textContent=(totalBudg>0?Math.min(Math.round((expense/totalBudg)*100),999):0)+'%';renderCatGrid(movs,budgets);const gInc=movs.filter(m=>m.type==='ingreso'&&m.user==='gustavo').reduce((s,m)=>s+m.amount,0),gaInc=movs.filter(m=>m.type==='ingreso'&&m.user==='gabrielle').reduce((s,m)=>s+m.amount,0);document.getElementById('du-g-exp').textContent=fmt(gExp);document.getElementById('du-g-inc').textContent=fmt(gInc);document.getElementById('du-ga-exp').textContent=fmt(gaExp);document.getElementById('du-ga-inc').textContent=fmt(gaInc);const tE=gExp+gaExp||1;document.getElementById('du-bar-g').style.width=Math.round((gExp/tE)*100)+'%';document.getElementById('du-bar-ga').style.width=Math.round((gaExp/tE)*100)+'%';renderRecentMovs(movs);renderPieChart(movs);renderBarChart()}
 
-function renderCatGrid(movs,budgets){
-  const grid=document.getElementById('cat-grid'),gastos=movs.filter(m=>m.type==='gasto'),catTotals={};
-  gastos.forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});
-  const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,4);
-  if(!sorted.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-ico">📊</div><p>Sin gastos este mes</p></div>';return}
-  grid.innerHTML=sorted.map(([catId,total])=>{
-    const c=getCat(catId),budg=parseFloat(budgets[catId])||0,pct=budg>0?Math.min(Math.round((total/budg)*100),999):0;
-    const badge=budg===0?'':pct>=100?'badge-over':pct>=75?'badge-warn':'badge-ok';
-    const badgeText=budg>0?(pct+'%'):'',barColor=pct>=100?'var(--pink)':pct>=75?'var(--gold)':'var(--mint)',barW=budg>0?Math.min(pct,100):0;
-    return `<div class="cat-tile" onclick="openCatOverlay('${catId}')"><div class="ct-top"><span class="ct-icon">${c.icon}</span>${badgeText?`<span class="ct-badge ${badge}">${badgeText}</span>`:''}</div><div class="ct-name">${c.name}</div><div class="ct-spent">-${fmt(total)}</div>${budg>0?`<div class="ct-budget">de ${fmt(budg)}</div><div class="ct-bar"><div class="ct-fill" style="width:${barW}%;background:${barColor}"></div></div>`:''}</div>`;
-  }).join('');
-}
+function renderCatGrid(movs,budgets){const grid=document.getElementById('cat-grid'),gastos=movs.filter(m=>m.type==='gasto'),catTotals={};gastos.forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,4);if(!sorted.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-ico">📊</div><p>Sin gastos este mes</p></div>';return}grid.innerHTML=sorted.map(([catId,total])=>{const c=getCat(catId),budg=parseFloat(budgets[catId])||0,pct=budg>0?Math.min(Math.round((total/budg)*100),999):0,badge=budg===0?'':pct>=100?'badge-over':pct>=75?'badge-warn':'badge-ok',badgeText=budg>0?(pct+'%'):'',barColor=pct>=100?'var(--pink)':pct>=75?'var(--gold)':'var(--mint)',barW=budg>0?Math.min(pct,100):0;return `<div class="cat-tile" onclick="openCatOverlay('${catId}')"><div class="ct-top"><span class="ct-icon">${c.icon}</span>${badgeText?`<span class="ct-badge ${badge}">${badgeText}</span>`:''}</div><div class="ct-name">${c.name}</div><div class="ct-spent">-${fmt(total)}</div>${budg>0?`<div class="ct-budget">de ${fmt(budg)}</div><div class="ct-bar"><div class="ct-fill" style="width:${barW}%;background:${barColor}"></div></div>`:''}</div>`}).join('')}
 
-function renderRecentMovs(movs){
-  const el=document.getElementById('recent-movs'),sorted=[...movs].sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts).slice(0,5);
-  if(!sorted.length){el.innerHTML='<div class="empty"><div class="empty-ico">📝</div><p>Sin movimientos este mes</p></div>';return}
-  el.innerHTML='<div class="mov-wrap">'+sorted.map(m=>renderMovItem(m)).join('')+'</div>';
-}
+function renderRecentMovs(movs){const el=document.getElementById('recent-movs'),sorted=[...movs].sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts).slice(0,5);if(!sorted.length){el.innerHTML='<div class="empty"><div class="empty-ico">📝</div><p>Sin movimientos este mes</p></div>';return}el.innerHTML='<div class="mov-wrap">'+sorted.map(m=>renderMovItem(m)).join('')+'</div>'}
 
-function renderMovItem(m){
-  const c=getCat(m.category),isG=m.type==='gasto',label=isG?(m.subcat||c.name):(m.intype||'Ingreso'),ub=m.user==='gustavo'?'g':'ga';
-  return `<div class="mov-item" onclick="openEditMovement('${m.id}')"><div class="mov-ico ${isG?'ico-gasto':'ico-ingreso'}">${isG?c.icon:'💰'}</div><div class="mov-body"><div class="mov-name">${label}</div><div class="mov-meta"><span class="ubadge ${ub}">${uName(m.user)}</span><span class="mov-cat">${m.desc||''}</span></div></div><div class="mov-amt ${isG?'amt-gasto':'amt-ingreso'}">${isG?'-':'+'} ${fmt(m.amount)}</div></div>`;
-}
+function renderMovItem(m){const c=getCat(m.category),isG=m.type==='gasto',label=isG?(m.subcat||c.name):(m.intype||'Ingreso'),ub=m.user==='gustavo'?'g':'ga';return `<div class="mov-item" onclick="openEditMovement('${m.id}')"><div class="mov-ico ${isG?'ico-gasto':'ico-ingreso'}">${isG?c.icon:'💰'}</div><div class="mov-body"><div class="mov-name">${label}</div><div class="mov-meta"><span class="ubadge ${ub}">${uName(m.user)}</span><span class="mov-cat">${m.desc||''}</span></div></div><div class="mov-amt ${isG?'amt-gasto':'amt-ingreso'}">${isG?'-':'+'} ${fmt(m.amount)}</div></div>`}
 
 /* ═══════════════════════════════════════════════════
    CHARTS
    ═══════════════════════════════════════════════════ */
-function renderPieChart(movs){
-  const gastos=movs.filter(m=>m.type==='gasto'),catTotals={};
-  gastos.forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});
-  const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
-  const ctx=document.getElementById('pie-chart');if(pieChart)pieChart.destroy();
-  if(!sorted.length){pieChart=null;return}
-  pieChart=new Chart(ctx,{type:'doughnut',data:{labels:sorted.map(([id])=>getCat(id).name),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:sorted.map(([id])=>getCat(id).color),borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b85a8',font:{size:11,family:"'Plus Jakarta Sans'"},padding:12,usePointStyle:true,pointStyleWidth:8}}}}});
-}
+function renderPieChart(movs){const gastos=movs.filter(m=>m.type==='gasto'),catTotals={};gastos.forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);const ctx=document.getElementById('pie-chart');if(pieChart)pieChart.destroy();if(!sorted.length){pieChart=null;return}pieChart=new Chart(ctx,{type:'doughnut',data:{labels:sorted.map(([id])=>getCat(id).name),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:sorted.map(([id])=>getCat(id).color),borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b85a8',font:{size:11,family:"'Plus Jakarta Sans'"},padding:12,usePointStyle:true,pointStyleWidth:8}}}}})}
 
-function renderBarChart(){
-  const labels=[],incData=[],expData=[];
-  for(let i=5;i>=0;i--){let m=viewMonth-i,y=viewYear;if(m<0){m+=12;y--}labels.push(MONTHS[m].substring(0,3));const mm=mMovs(y,m);incData.push(mm.filter(x=>x.type==='ingreso').reduce((s,x)=>s+x.amount,0));expData.push(mm.filter(x=>x.type==='gasto').reduce((s,x)=>s+x.amount,0))}
-  const ctx=document.getElementById('bar-chart');if(barChart)barChart.destroy();
-  barChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Ingresos',data:incData,backgroundColor:'rgba(0,229,179,0.7)',borderRadius:6,barPercentage:.4},{label:'Gastos',data:expData,backgroundColor:'rgba(255,90,126,0.7)',borderRadius:6,barPercentage:.4}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{grid:{display:false},ticks:{color:'#344760',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#344760',font:{size:10},callback:v=>fmtS(v)}}},plugins:{legend:{labels:{color:'#6b85a8',font:{size:11,family:"'Plus Jakarta Sans'"},usePointStyle:true,pointStyleWidth:8,padding:14}}}}});
-}
+function renderBarChart(){const labels=[],incData=[],expData=[];for(let i=5;i>=0;i--){let m=viewMonth-i,y=viewYear;if(m<0){m+=12;y--}labels.push(MONTHS[m].substring(0,3));const mm=mMovs(y,m);incData.push(mm.filter(x=>x.type==='ingreso').reduce((s,x)=>s+x.amount,0));expData.push(mm.filter(x=>x.type==='gasto').reduce((s,x)=>s+x.amount,0))}const ctx=document.getElementById('bar-chart');if(barChart)barChart.destroy();barChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Ingresos',data:incData,backgroundColor:'rgba(0,229,179,0.7)',borderRadius:6,barPercentage:.4},{label:'Gastos',data:expData,backgroundColor:'rgba(255,90,126,0.7)',borderRadius:6,barPercentage:.4}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{grid:{display:false},ticks:{color:'#344760',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#344760',font:{size:10},callback:v=>fmtS(v)}}},plugins:{legend:{labels:{color:'#6b85a8',font:{size:11,family:"'Plus Jakarta Sans'"},usePointStyle:true,pointStyleWidth:8,padding:14}}}}})}
 
 /* ═══════════════════════════════════════════════════
    HISTORY
    ═══════════════════════════════════════════════════ */
 function setHistFilter(el,f){histFilter=f;document.querySelectorAll('.filter-bar .fchip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderHistory()}
-
-function renderHistory(){
-  const movs=mMovs(),q=(document.getElementById('search-q').value||'').toLowerCase();
-  let filtered=movs;
-  if(histFilter==='gasto')filtered=filtered.filter(m=>m.type==='gasto');
-  if(histFilter==='ingreso')filtered=filtered.filter(m=>m.type==='ingreso');
-  if(histFilter==='gustavo')filtered=filtered.filter(m=>m.user==='gustavo');
-  if(histFilter==='gabrielle')filtered=filtered.filter(m=>m.user==='gabrielle');
-  if(q)filtered=filtered.filter(m=>(m.subcat||'').toLowerCase().includes(q)||(m.desc||'').toLowerCase().includes(q)||(m.intype||'').toLowerCase().includes(q)||getCat(m.category).name.toLowerCase().includes(q));
-  filtered.sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
-  const inc=filtered.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0);
-  const exp=filtered.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0);
-  document.getElementById('hist-summary').innerHTML=`<div class="stats-row"><div class="stat-tile st-mint"><div class="stat-tile-lbl">Ingresos</div><div class="stat-tile-val">${fmt(inc)}</div></div><div class="stat-tile st-pink"><div class="stat-tile-lbl">Gastos</div><div class="stat-tile-val">${fmt(exp)}</div></div></div>`;
-  const list=document.getElementById('hist-list');
-  if(!filtered.length){list.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>Sin resultados</p></div>';return}
-  const groups={};filtered.forEach(m=>{if(!groups[m.date])groups[m.date]=[];groups[m.date].push(m)});
-  let html='';
-  Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(date=>{
-    const d=new Date(date+'T12:00:00'),dayStr=d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'});
-    html+=`<div class="mov-wrap"><div class="mov-day">${dayStr}</div>`;
-    groups[date].forEach(m=>{html+=renderMovItemHist(m)});html+='</div>';
-  });list.innerHTML=html;
-}
-
-function renderMovItemHist(m){
-  const c=getCat(m.category),isG=m.type==='gasto',label=isG?(m.subcat||c.name):(m.intype||'Ingreso'),ub=m.user==='gustavo'?'g':'ga';
-  return `<div class="mov-item" onclick="openEditMovement('${m.id}')"><div class="mov-ico ${isG?'ico-gasto':'ico-ingreso'}">${isG?c.icon:'💰'}</div><div class="mov-body"><div class="mov-name">${label}</div><div class="mov-meta"><span class="ubadge ${ub}">${uName(m.user)}</span><span class="mov-cat">${m.method||''} ${m.desc?'· '+m.desc:''}</span></div></div><div style="text-align:right"><div class="mov-amt ${isG?'amt-gasto':'amt-ingreso'}">${isG?'-':'+'} ${fmt(m.amount)}</div><button onclick="event.stopPropagation();deleteMovement('${m.id}')" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;margin-top:2px">🗑️</button></div></div>`;
-}
+function renderHistory(){const movs=mMovs(),q=(document.getElementById('search-q').value||'').toLowerCase();let filtered=movs;if(histFilter==='gasto')filtered=filtered.filter(m=>m.type==='gasto');if(histFilter==='ingreso')filtered=filtered.filter(m=>m.type==='ingreso');if(histFilter==='gustavo')filtered=filtered.filter(m=>m.user==='gustavo');if(histFilter==='gabrielle')filtered=filtered.filter(m=>m.user==='gabrielle');if(q)filtered=filtered.filter(m=>(m.subcat||'').toLowerCase().includes(q)||(m.desc||'').toLowerCase().includes(q)||(m.intype||'').toLowerCase().includes(q)||getCat(m.category).name.toLowerCase().includes(q));filtered.sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);const inc=filtered.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0),exp=filtered.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0);document.getElementById('hist-summary').innerHTML=`<div class="stats-row"><div class="stat-tile st-mint"><div class="stat-tile-lbl">Ingresos</div><div class="stat-tile-val">${fmt(inc)}</div></div><div class="stat-tile st-pink"><div class="stat-tile-lbl">Gastos</div><div class="stat-tile-val">${fmt(exp)}</div></div></div>`;const list=document.getElementById('hist-list');if(!filtered.length){list.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>Sin resultados</p></div>';return}const groups={};filtered.forEach(m=>{if(!groups[m.date])groups[m.date]=[];groups[m.date].push(m)});let html='';Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(date=>{const d=new Date(date+'T12:00:00'),dayStr=d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'});html+=`<div class="mov-wrap"><div class="mov-day">${dayStr}</div>`;groups[date].forEach(m=>{html+=renderMovItemHist(m)});html+='</div>'});list.innerHTML=html}
+function renderMovItemHist(m){const c=getCat(m.category),isG=m.type==='gasto',label=isG?(m.subcat||c.name):(m.intype||'Ingreso'),ub=m.user==='gustavo'?'g':'ga';return `<div class="mov-item" onclick="openEditMovement('${m.id}')"><div class="mov-ico ${isG?'ico-gasto':'ico-ingreso'}">${isG?c.icon:'💰'}</div><div class="mov-body"><div class="mov-name">${label}</div><div class="mov-meta"><span class="ubadge ${ub}">${uName(m.user)}</span><span class="mov-cat">${m.method||''} ${m.desc?'· '+m.desc:''}</span></div></div><div style="text-align:right"><div class="mov-amt ${isG?'amt-gasto':'amt-ingreso'}">${isG?'-':'+'} ${fmt(m.amount)}</div><button onclick="event.stopPropagation();deleteMovement('${m.id}')" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;margin-top:2px">🗑️</button></div></div>`}
 
 /* ═══════════════════════════════════════════════════
    BUDGET
    ═══════════════════════════════════════════════════ */
-function renderBudget(){
-  const bk=mkk(viewYear,viewMonth),budgets=S.budgets[bk]||{},movs=mMovs(),gastos=movs.filter(m=>m.type==='gasto'),catTotals={};
-  gastos.forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});
-  const totalBudg=Object.values(budgets).reduce((s,v)=>s+(parseFloat(v)||0),0),totalSpent=gastos.reduce((s,m)=>s+m.amount,0);
-  const pct=totalBudg>0?Math.min(Math.round((totalSpent/totalBudg)*100),999):0;
-  document.getElementById('budg-total').textContent=fmt(totalBudg);document.getElementById('budg-spent').textContent=fmt(totalSpent);
-  const bar=document.getElementById('budg-master-bar');bar.style.width=Math.min(pct,100)+'%';bar.style.background=pct>=100?'var(--pink)':pct>=75?'var(--gold)':'var(--mint)';
-  document.getElementById('budg-pct-txt').textContent=totalBudg>0?`${pct}% utilizado · Quedan ${fmt(Math.max(totalBudg-totalSpent,0))}`:'Sin presupuesto definido';
-  const el=document.getElementById('budget-envelopes');
-  if(!S.categories.length){el.innerHTML='<div class="empty"><p>Sin categorías</p></div>';return}
-  el.innerHTML=S.categories.map(c=>{
-    const spent=catTotals[c.id]||0,budg=parseFloat(budgets[c.id])||0,p=budg>0?Math.min(Math.round((spent/budg)*100),999):0;
-    const color=p>=100?'var(--pink)':p>=75?'var(--gold)':'var(--mint)',statusCls=p>=100?'badge-over':p>=75?'badge-warn':'badge-ok',statusTxt=budg===0?'Sin límite':p>=100?'Excedido':p+'%';
-    return `<div class="env-card" onclick="openCatOverlay('${c.id}')"><div class="env-top"><div class="env-left"><div class="env-icon" style="background:${c.color}22">${c.icon}</div><div><div class="env-name">${c.name}</div><div class="env-budget">${budg>0?'Límite: '+fmt(budg):'Sin presupuesto'}</div></div></div><span class="env-status ${statusCls}">${statusTxt}</span></div><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="env-spent" style="color:var(--pink)">${fmt(spent)}</span>${budg>0?`<span style="font-size:12px;color:var(--text2)">de ${fmt(budg)}</span>`:''}</div>${budg>0?`<div class="pbar"><div class="pfill" style="width:${Math.min(p,100)}%;background:${color}"></div></div>`:''}</div>`;
-  }).join('');
-}
-
-function openBudgetEdit(){
-  const bk=mkk(viewYear,viewMonth),budgets=S.budgets[bk]||{};
-  document.getElementById('budget-edit-list').innerHTML=S.categories.map(c=>`<div class="fgroup"><label class="flabel">${c.icon} ${c.name}</label><input class="finput" type="number" step="0.01" inputmode="decimal" id="budg-${c.id}" value="${budgets[c.id]||''}" placeholder="0,00"></div>`).join('');
-  openOverlay('budget-overlay');
-}
-
-function saveBudgets(){
-  const bk=mkk(viewYear,viewMonth);if(!S.budgets[bk])S.budgets[bk]={};
-  S.categories.forEach(c=>{const v=parseFloat(document.getElementById('budg-'+c.id).value)||0;if(v>0)S.budgets[bk][c.id]=v;else delete S.budgets[bk][c.id]});
-  saveState();closeOverlay('budget-overlay');renderPage();toast('Presupuestos guardados ✅');
-}
+function renderBudget(){const bk=mkk(viewYear,viewMonth),budgets=S.budgets[bk]||{},movs=mMovs(),gastos=movs.filter(m=>m.type==='gasto'),catTotals={};gastos.forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});const totalBudg=Object.values(budgets).reduce((s,v)=>s+(parseFloat(v)||0),0),totalSpent=gastos.reduce((s,m)=>s+m.amount,0),pct=totalBudg>0?Math.min(Math.round((totalSpent/totalBudg)*100),999):0;document.getElementById('budg-total').textContent=fmt(totalBudg);document.getElementById('budg-spent').textContent=fmt(totalSpent);const bar=document.getElementById('budg-master-bar');bar.style.width=Math.min(pct,100)+'%';bar.style.background=pct>=100?'var(--pink)':pct>=75?'var(--gold)':'var(--mint)';document.getElementById('budg-pct-txt').textContent=totalBudg>0?`${pct}% utilizado · Quedan ${fmt(Math.max(totalBudg-totalSpent,0))}`:'Sin presupuesto definido';const el=document.getElementById('budget-envelopes');if(!S.categories.length){el.innerHTML='<div class="empty"><p>Sin categorías</p></div>';return}el.innerHTML=S.categories.map(c=>{const spent=catTotals[c.id]||0,budg=parseFloat(budgets[c.id])||0,p=budg>0?Math.min(Math.round((spent/budg)*100),999):0,color=p>=100?'var(--pink)':p>=75?'var(--gold)':'var(--mint)',statusCls=p>=100?'badge-over':p>=75?'badge-warn':'badge-ok',statusTxt=budg===0?'Sin límite':p>=100?'Excedido':p+'%';return `<div class="env-card" onclick="openCatOverlay('${c.id}')"><div class="env-top"><div class="env-left"><div class="env-icon" style="background:${c.color}22">${c.icon}</div><div><div class="env-name">${c.name}</div><div class="env-budget">${budg>0?'Límite: '+fmt(budg):'Sin presupuesto'}</div></div></div><span class="env-status ${statusCls}">${statusTxt}</span></div><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="env-spent" style="color:var(--pink)">${fmt(spent)}</span>${budg>0?`<span style="font-size:12px;color:var(--text2)">de ${fmt(budg)}</span>`:''}</div>${budg>0?`<div class="pbar"><div class="pfill" style="width:${Math.min(p,100)}%;background:${color}"></div></div>`:''}</div>`}).join('')}
+function openBudgetEdit(){const bk=mkk(viewYear,viewMonth),budgets=S.budgets[bk]||{};document.getElementById('budget-edit-list').innerHTML=S.categories.map(c=>`<div class="fgroup"><label class="flabel">${c.icon} ${c.name}</label><input class="finput" type="number" step="0.01" inputmode="decimal" id="budg-${c.id}" value="${budgets[c.id]||''}" placeholder="0,00"></div>`).join('');openOverlay('budget-overlay')}
+function saveBudgets(){const bk=mkk(viewYear,viewMonth);if(!S.budgets[bk])S.budgets[bk]={};S.categories.forEach(c=>{const v=parseFloat(document.getElementById('budg-'+c.id).value)||0;if(v>0)S.budgets[bk][c.id]=v;else delete S.budgets[bk][c.id]});saveState();closeOverlay('budget-overlay');renderPage();toast('Presupuestos guardados ✅')}
 
 /* ═══════════════════════════════════════════════════
    CATEGORY OVERLAY
    ═══════════════════════════════════════════════════ */
 function openCatOverlay(catId){catOvCat=catId;catOvTab='month';document.getElementById('catov-tab-m').className='tab active';document.getElementById('catov-tab-a').className='tab';renderCatOverlay();openOverlay('cat-overlay')}
 function setCatOvTab(t){catOvTab=t;document.getElementById('catov-tab-m').className='tab'+(t==='month'?' active':'');document.getElementById('catov-tab-a').className='tab'+(t==='all'?' active':'');renderCatOverlay()}
-
-function renderCatOverlay(){
-  const c=getCat(catOvCat),isMonth=catOvTab==='month';
-  document.getElementById('cat-ov-icon').textContent=c.icon;document.getElementById('cat-ov-name').textContent=c.name;
-  document.getElementById('cat-ov-period').textContent=isMonth?MONTHS[viewMonth]+' '+viewYear:'Todo el historial';
-  const allActive=activeItems(S.movements);
-  const movs=isMonth?mMovs().filter(m=>m.category===catOvCat&&m.type==='gasto'):allActive.filter(m=>m.category===catOvCat&&m.type==='gasto');
-  const total=movs.reduce((s,m)=>s+m.amount,0);
-  document.getElementById('cat-ov-total').textContent=fmt(total);document.getElementById('cat-ov-count').textContent=movs.length+' movimientos';
-  const bk=mkk(viewYear,viewMonth),budg=parseFloat((S.budgets[bk]||{})[catOvCat])||0,budgSec=document.getElementById('cat-ov-budget-section');
-  if(budg>0&&isMonth){budgSec.style.display='block';const pct=Math.min(Math.round((total/budg)*100),999);document.getElementById('cat-ov-budg-lbl').textContent=fmt(total)+' / '+fmt(budg)+' ('+pct+'%)';const bar=document.getElementById('cat-ov-budg-bar');bar.style.width=Math.min(pct,100)+'%';bar.style.background=pct>=100?'var(--pink)':pct>=75?'var(--gold)':'var(--mint)'}else{budgSec.style.display='none'}
-  const sorted=[...movs].sort((a,b)=>b.date.localeCompare(a.date));
-  document.getElementById('cat-ov-list').innerHTML=sorted.length?sorted.map(m=>`<div class="mov-item" onclick="closeOverlay('cat-overlay');openEditMovement('${m.id}')"><div class="mov-ico ico-gasto">${c.icon}</div><div class="mov-body"><div class="mov-name">${m.subcat||c.name}</div><div class="mov-meta"><span class="ubadge ${m.user==='gustavo'?'g':'ga'}">${uName(m.user)}</span><span class="mov-cat">${m.date}</span></div></div><div class="mov-amt amt-gasto">-${fmt(m.amount)}</div></div>`).join(''):'<div class="empty"><p>Sin movimientos</p></div>';
-}
+function renderCatOverlay(){const c=getCat(catOvCat),isMonth=catOvTab==='month';document.getElementById('cat-ov-icon').textContent=c.icon;document.getElementById('cat-ov-name').textContent=c.name;document.getElementById('cat-ov-period').textContent=isMonth?MONTHS[viewMonth]+' '+viewYear:'Todo el historial';const allActive=activeItems(S.movements),movs=isMonth?mMovs().filter(m=>m.category===catOvCat&&m.type==='gasto'):allActive.filter(m=>m.category===catOvCat&&m.type==='gasto'),total=movs.reduce((s,m)=>s+m.amount,0);document.getElementById('cat-ov-total').textContent=fmt(total);document.getElementById('cat-ov-count').textContent=movs.length+' movimientos';const bk=mkk(viewYear,viewMonth),budg=parseFloat((S.budgets[bk]||{})[catOvCat])||0,budgSec=document.getElementById('cat-ov-budget-section');if(budg>0&&isMonth){budgSec.style.display='block';const pct=Math.min(Math.round((total/budg)*100),999);document.getElementById('cat-ov-budg-lbl').textContent=fmt(total)+' / '+fmt(budg)+' ('+pct+'%)';const bar=document.getElementById('cat-ov-budg-bar');bar.style.width=Math.min(pct,100)+'%';bar.style.background=pct>=100?'var(--pink)':pct>=75?'var(--gold)':'var(--mint)'}else{budgSec.style.display='none'}const sorted=[...movs].sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('cat-ov-list').innerHTML=sorted.length?sorted.map(m=>`<div class="mov-item" onclick="closeOverlay('cat-overlay');openEditMovement('${m.id}')"><div class="mov-ico ico-gasto">${c.icon}</div><div class="mov-body"><div class="mov-name">${m.subcat||c.name}</div><div class="mov-meta"><span class="ubadge ${m.user==='gustavo'?'g':'ga'}">${uName(m.user)}</span><span class="mov-cat">${m.date}</span></div></div><div class="mov-amt amt-gasto">-${fmt(m.amount)}</div></div>`).join(''):'<div class="empty"><p>Sin movimientos</p></div>'}
 
 /* ═══════════════════════════════════════════════════
    PROFILE
    ═══════════════════════════════════════════════════ */
-function openProfile(){
-  if(!currentUser)return;
-  document.getElementById('pf-avatar').textContent=currentUser==='gustavo'?'👨':'👩';
-  document.getElementById('pf-name').textContent=uName(currentUser);
-  const myMovs=activeItems(S.movements).filter(m=>m.user===currentUser);
-  const myExp=myMovs.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0);
-  const myInc=myMovs.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0);
-  document.getElementById('pf-total-movs').textContent=myMovs.length+' movimientos totales';
-  document.getElementById('pf-exp').textContent=fmt(myExp);document.getElementById('pf-inc').textContent=fmt(myInc);document.getElementById('pf-cnt').textContent=myMovs.length;
-  const catTotals={};myMovs.filter(m=>m.type==='gasto').forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});
-  const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  document.getElementById('pf-top-cats').innerHTML=sorted.length?sorted.map(([id,total])=>{const c=getCat(id),maxVal=sorted[0][1]||1;return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="font-size:18px;width:24px">${c.icon}</span><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${c.name}</span><span style="font-weight:700">${fmt(total)}</span></div><div class="pbar" style="height:4px"><div class="pfill" style="width:${Math.round((total/maxVal)*100)}%;background:${c.color}"></div></div></div></div>`}).join(''):'<p style="font-size:13px;color:var(--text3)">Sin gastos registrados</p>';
-  openOverlay('profile-overlay');
-}
+function openProfile(){if(!currentUser)return;document.getElementById('pf-avatar').textContent=currentUser==='gustavo'?'👨':'👩';document.getElementById('pf-name').textContent=uName(currentUser);const myMovs=activeItems(S.movements).filter(m=>m.user===currentUser),myExp=myMovs.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0),myInc=myMovs.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0);document.getElementById('pf-total-movs').textContent=myMovs.length+' movimientos totales';document.getElementById('pf-exp').textContent=fmt(myExp);document.getElementById('pf-inc').textContent=fmt(myInc);document.getElementById('pf-cnt').textContent=myMovs.length;const catTotals={};myMovs.filter(m=>m.type==='gasto').forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);document.getElementById('pf-top-cats').innerHTML=sorted.length?sorted.map(([id,total])=>{const c=getCat(id),maxVal=sorted[0][1]||1;return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="font-size:18px;width:24px">${c.icon}</span><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${c.name}</span><span style="font-weight:700">${fmt(total)}</span></div><div class="pbar" style="height:4px"><div class="pfill" style="width:${Math.round((total/maxVal)*100)}%;background:${c.color}"></div></div></div></div>`}).join(''):'<p style="font-size:13px;color:var(--text3)">Sin gastos registrados</p>';openOverlay('profile-overlay')}
 
 /* ═══════════════════════════════════════════════════
    REPORTS
    ═══════════════════════════════════════════════════ */
 function setReportTab(el,tab){reportTab=tab;document.querySelectorAll('#page-reports .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderReports()}
 function renderReports(){const body=document.getElementById('report-body');if(reportTab==='monthly')renderMonthlyReport(body);else if(reportTab==='users')renderUsersReport(body);else if(reportTab==='annual')renderAnnualReport(body);else if(reportTab==='export')renderExportReport(body)}
-
-function renderMonthlyReport(body){
-  const movs=mMovs(),inc=movs.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0),exp=movs.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0),bal=inc-exp;
-  const gastos=movs.filter(m=>m.type==='gasto'),catTotals={};gastos.forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});
-  const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
-  body.innerHTML=`<div class="card"><div class="card-title" style="margin-bottom:14px">Resumen ${MONTHS[viewMonth]} ${viewYear}</div><div class="rrow"><span class="rrow-l">💰 Ingresos</span><span class="rrow-v" style="color:var(--mint)">${fmt(inc)}</span></div><div class="rrow"><span class="rrow-l">💸 Gastos</span><span class="rrow-v" style="color:var(--pink)">${fmt(exp)}</span></div><div class="rrow"><span class="rrow-l">📊 Balance</span><span class="rrow-v" style="color:${bal>=0?'var(--mint)':'var(--pink)'}">${fmtBalance(bal)}</span></div><div class="rrow"><span class="rrow-l">📋 Movimientos</span><span class="rrow-v">${movs.length}</span></div><div class="rrow"><span class="rrow-l">📅 Gasto diario medio</span><span class="rrow-v" style="color:var(--pink)">${fmt(exp/(new Date(viewYear,viewMonth+1,0).getDate()))}</span></div></div><div class="card"><div class="card-title" style="margin-bottom:14px">Desglose por categoría</div>${sorted.map(([id,total])=>{const c=getCat(id),pct=exp>0?Math.round((total/exp)*100):0;return `<div class="rrow"><span class="rrow-l">${c.icon} ${c.name}</span><span class="rrow-v">${fmt(total)} <span style="font-size:11px;color:var(--text2)">(${pct}%)</span></span></div>`}).join('')}${!sorted.length?'<p style="color:var(--text3);font-size:13px">Sin gastos</p>':''}</div>`;
-}
-
-function renderUsersReport(body){
-  const movs=mMovs();
-  body.innerHTML=['gustavo','gabrielle'].map(u=>{
-    const uM=movs.filter(m=>m.user===u),uI=uM.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0),uE=uM.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0),uB=uI-uE;
-    const ct={};uM.filter(m=>m.type==='gasto').forEach(m=>{ct[m.category]=(ct[m.category]||0)+m.amount});
-    const tc=Object.entries(ct).sort((a,b)=>b[1]-a[1]).slice(0,3);
-    return `<div class="card"><div class="card-title" style="margin-bottom:14px">${u==='gustavo'?'👨':'👩'} ${uName(u)}</div><div class="rrow"><span class="rrow-l">Ingresos</span><span class="rrow-v" style="color:var(--mint)">${fmt(uI)}</span></div><div class="rrow"><span class="rrow-l">Gastos</span><span class="rrow-v" style="color:var(--pink)">${fmt(uE)}</span></div><div class="rrow"><span class="rrow-l">Balance</span><span class="rrow-v" style="color:${uB>=0?'var(--mint)':'var(--pink)'}">${fmtBalance(uB)}</span></div><div class="rrow"><span class="rrow-l">Movimientos</span><span class="rrow-v">${uM.length}</span></div>${tc.length?'<div style="margin-top:8px;font-size:11px;color:var(--text2)">Top categorías:</div>':''}${tc.map(([id,t])=>`<div class="rrow"><span class="rrow-l">${getCat(id).icon} ${getCat(id).name}</span><span class="rrow-v">${fmt(t)}</span></div>`).join('')}</div>`;
-  }).join('');
-}
-
-function renderAnnualReport(body){
-  let html='<div class="card"><div class="card-title" style="margin-bottom:14px">Resumen Anual '+viewYear+'</div>',tI=0,tE=0;
-  for(let m=0;m<12;m++){const mm=mMovs(viewYear,m),i=mm.filter(x=>x.type==='ingreso').reduce((s,x)=>s+x.amount,0),e=mm.filter(x=>x.type==='gasto').reduce((s,x)=>s+x.amount,0);tI+=i;tE+=e;if(i||e)html+=`<div class="rrow"><span class="rrow-l">${MONTHS[m]}</span><span class="rrow-v"><span style="color:var(--mint)">${fmtS(i)}</span> / <span style="color:var(--pink)">${fmtS(e)}</span></span></div>`}
-  const aB=tI-tE;
-  html+=`<div style="border-top:2px solid var(--border);margin-top:8px;padding-top:8px"><div class="rrow"><span class="rrow-l"><strong>Total Ingresos</strong></span><span class="rrow-v" style="color:var(--mint)">${fmt(tI)}</span></div><div class="rrow"><span class="rrow-l"><strong>Total Gastos</strong></span><span class="rrow-v" style="color:var(--pink)">${fmt(tE)}</span></div><div class="rrow"><span class="rrow-l"><strong>Balance Anual</strong></span><span class="rrow-v" style="color:${aB>=0?'var(--mint)':'var(--pink)'}">${fmtBalance(aB)}</span></div></div></div>`;
-  body.innerHTML=html;
-}
-
+function renderMonthlyReport(body){const movs=mMovs(),inc=movs.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0),exp=movs.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0),bal=inc-exp,gastos=movs.filter(m=>m.type==='gasto'),catTotals={};gastos.forEach(m=>{catTotals[m.category]=(catTotals[m.category]||0)+m.amount});const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);body.innerHTML=`<div class="card"><div class="card-title" style="margin-bottom:14px">Resumen ${MONTHS[viewMonth]} ${viewYear}</div><div class="rrow"><span class="rrow-l">💰 Ingresos</span><span class="rrow-v" style="color:var(--mint)">${fmt(inc)}</span></div><div class="rrow"><span class="rrow-l">💸 Gastos</span><span class="rrow-v" style="color:var(--pink)">${fmt(exp)}</span></div><div class="rrow"><span class="rrow-l">📊 Balance</span><span class="rrow-v" style="color:${bal>=0?'var(--mint)':'var(--pink)'}">${fmtBalance(bal)}</span></div><div class="rrow"><span class="rrow-l">📋 Movimientos</span><span class="rrow-v">${movs.length}</span></div><div class="rrow"><span class="rrow-l">📅 Media diaria</span><span class="rrow-v" style="color:var(--pink)">${fmt(exp/(new Date(viewYear,viewMonth+1,0).getDate()))}</span></div></div><div class="card"><div class="card-title" style="margin-bottom:14px">Desglose por categoría</div>${sorted.map(([id,total])=>{const c=getCat(id),pct=exp>0?Math.round((total/exp)*100):0;return `<div class="rrow"><span class="rrow-l">${c.icon} ${c.name}</span><span class="rrow-v">${fmt(total)} <span style="font-size:11px;color:var(--text2)">(${pct}%)</span></span></div>`}).join('')}${!sorted.length?'<p style="color:var(--text3);font-size:13px">Sin gastos</p>':''}</div>`}
+function renderUsersReport(body){const movs=mMovs();body.innerHTML=['gustavo','gabrielle'].map(u=>{const uM=movs.filter(m=>m.user===u),uI=uM.filter(m=>m.type==='ingreso').reduce((s,m)=>s+m.amount,0),uE=uM.filter(m=>m.type==='gasto').reduce((s,m)=>s+m.amount,0),uB=uI-uE,ct={};uM.filter(m=>m.type==='gasto').forEach(m=>{ct[m.category]=(ct[m.category]||0)+m.amount});const tc=Object.entries(ct).sort((a,b)=>b[1]-a[1]).slice(0,3);return `<div class="card"><div class="card-title" style="margin-bottom:14px">${u==='gustavo'?'👨':'👩'} ${uName(u)}</div><div class="rrow"><span class="rrow-l">Ingresos</span><span class="rrow-v" style="color:var(--mint)">${fmt(uI)}</span></div><div class="rrow"><span class="rrow-l">Gastos</span><span class="rrow-v" style="color:var(--pink)">${fmt(uE)}</span></div><div class="rrow"><span class="rrow-l">Balance</span><span class="rrow-v" style="color:${uB>=0?'var(--mint)':'var(--pink)'}">${fmtBalance(uB)}</span></div><div class="rrow"><span class="rrow-l">Movimientos</span><span class="rrow-v">${uM.length}</span></div>${tc.length?'<div style="margin-top:8px;font-size:11px;color:var(--text2)">Top categorías:</div>':''}${tc.map(([id,t])=>`<div class="rrow"><span class="rrow-l">${getCat(id).icon} ${getCat(id).name}</span><span class="rrow-v">${fmt(t)}</span></div>`).join('')}</div>`}).join('')}
+function renderAnnualReport(body){let html='<div class="card"><div class="card-title" style="margin-bottom:14px">Resumen Anual '+viewYear+'</div>',tI=0,tE=0;for(let m=0;m<12;m++){const mm=mMovs(viewYear,m),i=mm.filter(x=>x.type==='ingreso').reduce((s,x)=>s+x.amount,0),e=mm.filter(x=>x.type==='gasto').reduce((s,x)=>s+x.amount,0);tI+=i;tE+=e;if(i||e)html+=`<div class="rrow"><span class="rrow-l">${MONTHS[m]}</span><span class="rrow-v"><span style="color:var(--mint)">${fmtS(i)}</span> / <span style="color:var(--pink)">${fmtS(e)}</span></span></div>`}const aB=tI-tE;html+=`<div style="border-top:2px solid var(--border);margin-top:8px;padding-top:8px"><div class="rrow"><span class="rrow-l"><strong>Total Ingresos</strong></span><span class="rrow-v" style="color:var(--mint)">${fmt(tI)}</span></div><div class="rrow"><span class="rrow-l"><strong>Total Gastos</strong></span><span class="rrow-v" style="color:var(--pink)">${fmt(tE)}</span></div><div class="rrow"><span class="rrow-l"><strong>Balance Anual</strong></span><span class="rrow-v" style="color:${aB>=0?'var(--mint)':'var(--pink)'}">${fmtBalance(aB)}</span></div></div></div>`;body.innerHTML=html}
 function renderExportReport(body){body.innerHTML=`<div class="card" style="text-align:center"><div class="card-title" style="margin-bottom:16px">Exportar datos</div><button class="btn btn-primary" onclick="exportExcel()" style="margin-bottom:10px">📊 Descargar Excel</button><button class="btn btn-ghost" onclick="exportCSV()">📄 Descargar CSV</button></div>`}
 
 /* ═══════════════════════════════════════════════════
    SAVINGS
    ═══════════════════════════════════════════════════ */
-function renderSavings(){
-  const aS=activeItems(S.savings),aG=activeItems(S.goals);
-  const totalSav=aS.reduce((s,e)=>s+e.amount,0),mk=mkk(viewYear,viewMonth),monthSav=aS.filter(e=>e.date&&e.date.startsWith(mk)).reduce((s,e)=>s+e.amount,0);
-  document.getElementById('sav-total').textContent=fmt(totalSav);document.getElementById('sav-month').textContent=fmt(monthSav);
-  const gl=document.getElementById('goals-list');
-  if(!aG.length){gl.innerHTML='<div class="empty"><div class="empty-ico">🎯</div><p>Sin objetivos creados</p></div>'}
-  else{gl.innerHTML=aG.map(g=>{const saved=aS.filter(s=>s.goalId===g.id).reduce((s,e)=>s+e.amount,0),pct=g.target>0?Math.min(Math.round((saved/g.target)*100),100):0;return `<div class="goal-card"><div class="goal-top"><div><div class="goal-name">${g.emoji||'🎯'} ${g.name}</div><div class="goal-amounts">${fmt(saved)} / ${fmt(g.target)}</div></div><button class="goal-del" onclick="deleteGoal('${g.id}')">🗑️</button></div><div class="pbar" style="height:6px"><div class="pfill" style="width:${pct}%;background:var(--mint)"></div></div><div class="goal-pct">${pct}% completado</div></div>`}).join('')}
-  const sl=document.getElementById('sav-list'),sorted=[...aS].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
-  if(!sorted.length){sl.innerHTML='<div class="empty"><p>Sin registros de ahorro</p></div>'}
-  else{sl.innerHTML='<div class="mov-wrap">'+sorted.map(e=>{const goal=aG.find(g=>g.id===e.goalId);return `<div class="mov-item"><div class="mov-ico ico-ingreso">💰</div><div class="mov-body"><div class="mov-name">${e.note||'Ahorro'}</div><div class="mov-meta"><span class="mov-cat">${e.date}${goal?' · '+goal.name:''}</span></div></div><div class="mov-amt amt-ingreso">+${fmt(e.amount)}</div></div>`}).join('')+'</div>'}
-}
-
+function renderSavings(){const aS=activeItems(S.savings),aG=activeItems(S.goals),totalSav=aS.reduce((s,e)=>s+e.amount,0),mk=mkk(viewYear,viewMonth),monthSav=aS.filter(e=>e.date&&e.date.startsWith(mk)).reduce((s,e)=>s+e.amount,0);document.getElementById('sav-total').textContent=fmt(totalSav);document.getElementById('sav-month').textContent=fmt(monthSav);const gl=document.getElementById('goals-list');if(!aG.length){gl.innerHTML='<div class="empty"><div class="empty-ico">🎯</div><p>Sin objetivos creados</p></div>'}else{gl.innerHTML=aG.map(g=>{const saved=aS.filter(s=>s.goalId===g.id).reduce((s,e)=>s+e.amount,0),pct=g.target>0?Math.min(Math.round((saved/g.target)*100),100):0;return `<div class="goal-card"><div class="goal-top"><div><div class="goal-name">${g.emoji||'🎯'} ${g.name}</div><div class="goal-amounts">${fmt(saved)} / ${fmt(g.target)}</div></div><button class="goal-del" onclick="deleteGoal('${g.id}')">🗑️</button></div><div class="pbar" style="height:6px"><div class="pfill" style="width:${pct}%;background:var(--mint)"></div></div><div class="goal-pct">${pct}% completado</div></div>`}).join('')}const sl=document.getElementById('sav-list'),sorted=[...aS].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);if(!sorted.length){sl.innerHTML='<div class="empty"><p>Sin registros de ahorro</p></div>'}else{sl.innerHTML='<div class="mov-wrap">'+sorted.map(e=>{const goal=aG.find(g=>g.id===e.goalId);return `<div class="mov-item"><div class="mov-ico ico-ingreso">💰</div><div class="mov-body"><div class="mov-name">${e.note||'Ahorro'}</div><div class="mov-meta"><span class="mov-cat">${e.date}${goal?' · '+goal.name:''}</span></div></div><div class="mov-amt amt-ingreso">+${fmt(e.amount)}</div></div>`}).join('')+'</div>'}}
 function openNewGoal(){document.getElementById('goal-name').value='';document.getElementById('goal-emoji').value='';document.getElementById('goal-target').value='';openOverlay('goal-overlay')}
-function saveGoal(){
-  const name=document.getElementById('goal-name').value.trim(),target=parseFloat(document.getElementById('goal-target').value);
-  if(!name){toast('Escribe un nombre','err');return}if(!target||target<=0){toast('Define una meta válida','err');return}
-  S.goals.push({id:genId(),name,emoji:document.getElementById('goal-emoji').value||'🎯',target,ts:Date.now()});
-  saveState();closeOverlay('goal-overlay');renderPage();toast('Objetivo creado ✅');
-}
-
-function openAddSavings(){
-  document.getElementById('sav-amt').value='';document.getElementById('sav-date').value=new Date().toISOString().split('T')[0];document.getElementById('sav-note').value='';
-  const sel=document.getElementById('sav-goal');sel.innerHTML='<option value="">Sin objetivo</option>'+activeItems(S.goals).map(g=>`<option value="${g.id}">${g.emoji} ${g.name}</option>`).join('');
-  openOverlay('savings-overlay');
-}
-
-function saveSavingsEntry(){
-  const amt=parseFloat(document.getElementById('sav-amt').value);if(!amt||amt<=0){toast('Introduce una cantidad','err');return}
-  S.savings.push({id:genId(),amount:amt,date:document.getElementById('sav-date').value,goalId:document.getElementById('sav-goal').value,note:document.getElementById('sav-note').value,ts:Date.now()});
-  saveState();closeOverlay('savings-overlay');renderPage();toast('Ahorro registrado ✅');
-}
+function saveGoal(){const name=document.getElementById('goal-name').value.trim(),target=parseFloat(document.getElementById('goal-target').value);if(!name){toast('Escribe un nombre','err');return}if(!target||target<=0){toast('Define una meta válida','err');return}S.goals.push({id:genId(),name,emoji:document.getElementById('goal-emoji').value||'🎯',target,ts:Date.now()});saveState();closeOverlay('goal-overlay');renderPage();toast('Objetivo creado ✅')}
+function openAddSavings(){document.getElementById('sav-amt').value='';document.getElementById('sav-date').value=new Date().toISOString().split('T')[0];document.getElementById('sav-note').value='';const sel=document.getElementById('sav-goal');sel.innerHTML='<option value="">Sin objetivo</option>'+activeItems(S.goals).map(g=>`<option value="${g.id}">${g.emoji} ${g.name}</option>`).join('');openOverlay('savings-overlay')}
+function saveSavingsEntry(){const amt=parseFloat(document.getElementById('sav-amt').value);if(!amt||amt<=0){toast('Introduce una cantidad','err');return}S.savings.push({id:genId(),amount:amt,date:document.getElementById('sav-date').value,goalId:document.getElementById('sav-goal').value,note:document.getElementById('sav-note').value,ts:Date.now()});saveState();closeOverlay('savings-overlay');renderPage();toast('Ahorro registrado ✅')}
 
 /* ═══════════════════════════════════════════════════
-   SETTINGS
+   SETTINGS - CON MODALES PROPIOS (sin prompt)
    ═══════════════════════════════════════════════════ */
-function renderSettings(){document.getElementById('cat-settings-list').innerHTML=S.categories.map(c=>`<div class="srow"><div><div class="srow-lbl">${c.icon} ${c.name}</div></div><span class="srow-action" style="color:var(--pink)" onclick="deleteCategory('${c.id}')">✕</span></div>`).join('')}
+function renderSettings(){document.getElementById('cat-settings-list').innerHTML=S.categories.map(c=>`<div class="srow"><div><div class="srow-lbl">${c.icon} ${c.name}</div></div><span class="srow-action" style="color:var(--pink)" onclick="deleteCategoryConfirm('${c.id}')">✕</span></div>`).join('')}
 
-function renameUser(n){
-  const current=n===1?S.users.u1:S.users.u2,name=prompt('Nuevo nombre para '+current+':',current);
-  if(name&&name.trim()){if(n===1)S.users.u1=name.trim();else S.users.u2=name.trim();saveState();updateUserNames();if(currentUser)document.getElementById('hdr-name').textContent=uName(currentUser);renderPage();toast('Nombre actualizado ✅')}
-}
-
-function changePin(){const p=prompt('Nuevo PIN (4 dígitos):');if(p&&/^\d{4}$/.test(p)){S.pin=p;saveState();toast('PIN cambiado ✅')}else if(p)toast('El PIN debe ser de 4 dígitos','err')}
-
+// ✅ NUEVA CATEGORÍA con modal propio
 function addCategory(){
-  const name=prompt('Nombre de la categoría:');if(!name||!name.trim())return;
-  const icon=prompt('Emoji:','📌')||'📌',id=name.trim().toLowerCase().replace(/[^a-z0-9]/g,'_');
-  if(S.categories.find(c=>c.id===id)){toast('Ya existe','err');return}
-  const colors=['#ff5a7e','#3b9eff','#ffd166','#a78bfa','#00e5b3','#ff8a65','#4dd0e1','#ba68c8','#ef5350'];
-  S.categories.push({id,name:name.trim(),icon,color:colors[S.categories.length%colors.length]});
-  saveState();renderPage();toast('Categoría añadida ✅');
+  document.getElementById('newcat-name').value='';
+  selectedEmoji='📌';
+  document.getElementById('newcat-icon').value='📌';
+  const grid=document.getElementById('emoji-grid');
+  grid.innerHTML=EMOJI_OPTIONS.map(e=>`<button class="emoji-opt${e==='📌'?' selected':''}" onclick="selectEmoji(this,'${e}')">${e}</button>`).join('');
+  openOverlay('newcat-overlay');
 }
 
-function deleteCategory(id){if(!confirm('¿Eliminar categoría?'))return;S.categories=S.categories.filter(c=>c.id!==id);saveState();renderPage();toast('Categoría eliminada')}
+function selectEmoji(el,emoji){
+  selectedEmoji=emoji;
+  document.getElementById('newcat-icon').value=emoji;
+  document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function saveNewCategory(){
+  const name=document.getElementById('newcat-name').value.trim();
+  if(!name){toast('Escribe un nombre','err');return}
+  const icon=document.getElementById('newcat-icon').value||'📌';
+  const id=name.toLowerCase().replace(/[^a-z0-9áéíóúñ]/g,'_').replace(/[áéíóúñ]/g,c=>({á:'a',é:'e',í:'i',ó:'o',ú:'u',ñ:'n'}[c]||c));
+  if(S.categories.find(c=>c.id===id)){toast('Ya existe esa categoría','err');return}
+  const colors=['#ff5a7e','#3b9eff','#ffd166','#a78bfa','#00e5b3','#ff8a65','#4dd0e1','#ba68c8','#ef5350','#8d6e63','#ec407a','#78909c'];
+  S.categories.push({id,name,icon,color:colors[S.categories.length%colors.length]});
+  saveState();closeOverlay('newcat-overlay');renderPage();toast('Categoría creada ✅');
+}
+
+// ✅ ELIMINAR CATEGORÍA con confirm propio
+function deleteCategoryConfirm(id){
+  const c=getCat(id);
+  customConfirm('¿Eliminar "'+c.name+'"?','Se eliminará la categoría. Los movimientos existentes no se borran.',function(){
+    S.categories=S.categories.filter(c=>c.id!==id);
+    saveState();renderPage();toast('Categoría eliminada');
+  });
+}
+
+// ✅ RENOMBRAR USUARIO con modal propio
+function renameUser(n){
+  const current=n===1?S.users.u1:S.users.u2;
+  document.getElementById('rename-sub').textContent='Nombre actual: '+current;
+  document.getElementById('rename-input').value=current;
+  document.getElementById('rename-num').value=n;
+  openOverlay('rename-overlay');
+}
+
+function saveRename(){
+  const name=document.getElementById('rename-input').value.trim();
+  if(!name){toast('Escribe un nombre','err');return}
+  const n=parseInt(document.getElementById('rename-num').value);
+  if(n===1)S.users.u1=name;else S.users.u2=name;
+  saveState();closeOverlay('rename-overlay');updateUserNames();
+  if(currentUser)document.getElementById('hdr-name').textContent=uName(currentUser);
+  renderPage();toast('Nombre actualizado ✅');
+}
+
+// ✅ CAMBIAR PIN con modal propio
+function changePin(){
+  document.getElementById('new-pin-input').value='';
+  openOverlay('pin-overlay');
+}
+
+function saveNewPin(){
+  const p=document.getElementById('new-pin-input').value;
+  if(!p||!/^\d{4}$/.test(p)){toast('El PIN debe ser de 4 dígitos','err');return}
+  S.pin=p;saveState();closeOverlay('pin-overlay');toast('PIN cambiado ✅');
+}
 
 /* ═══════════════════════════════════════════════════
-   EXPORT (solo items activos)
+   EXPORT
    ═══════════════════════════════════════════════════ */
-function exportExcel(){
-  try{const data=activeItems(S.movements).map(m=>({Fecha:m.date,Tipo:m.type,Importe:m.amount,Usuario:uName(m.user),Categoría:getCat(m.category).name,Subcategoría:m.subcat||'',Descripción:m.desc||'',Método:m.method||''}));const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Movimientos');XLSX.writeFile(wb,'GG_Finances_'+mkk(viewYear,viewMonth)+'.xlsx');toast('Excel descargado ✅')}catch(e){toast('Error al exportar','err');console.error(e)}
-}
-
-function exportCSV(){
-  try{const header='Fecha,Tipo,Importe,Usuario,Categoría,Subcategoría,Descripción,Método\n';const rows=activeItems(S.movements).map(m=>`${m.date},${m.type},${m.amount},${uName(m.user)},${getCat(m.category).name},${m.subcat||''},${m.desc||''},${m.method||''}`).join('\n');const blob=new Blob([header+rows],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='GG_Finances_'+mkk(viewYear,viewMonth)+'.csv';a.click();toast('CSV descargado ✅')}catch(e){toast('Error al exportar','err')}
-}
+function exportExcel(){try{const data=activeItems(S.movements).map(m=>({Fecha:m.date,Tipo:m.type,Importe:m.amount,Usuario:uName(m.user),Categoría:getCat(m.category).name,Subcategoría:m.subcat||'',Descripción:m.desc||'',Método:m.method||''}));const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Movimientos');XLSX.writeFile(wb,'GG_Finances_'+mkk(viewYear,viewMonth)+'.xlsx');toast('Excel descargado ✅')}catch(e){toast('Error al exportar','err')}}
+function exportCSV(){try{const h='Fecha,Tipo,Importe,Usuario,Categoría,Subcategoría,Descripción,Método\n',rows=activeItems(S.movements).map(m=>`${m.date},${m.type},${m.amount},${uName(m.user)},${getCat(m.category).name},${m.subcat||''},${m.desc||''},${m.method||''}`).join('\n');const blob=new Blob([h+rows],{type:'text/csv;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='GG_Finances_'+mkk(viewYear,viewMonth)+'.csv';a.click();toast('CSV descargado ✅')}catch(e){toast('Error','err')}}
 
 function clearAllData(){
-  if(!confirm('⚠️ ¿Borrar TODOS los datos? Esta acción no se puede deshacer.'))return;
-  if(!confirm('¿Estás COMPLETAMENTE seguro?'))return;
-  S=defaultState();S.lastModified=Date.now();
-  localStorage.setItem('gg_finances',JSON.stringify(S));
-  if(firebaseReady&&dbRef)dbRef.set(S);
-  renderPage();toast('Datos eliminados');
+  customConfirm('⚠️ ¿Borrar TODOS los datos?','Esta acción es irreversible. Se eliminarán todos los movimientos, presupuestos y configuraciones.',function(){
+    S=defaultState();S.lastModified=Date.now();
+    localStorage.setItem('gg_finances',JSON.stringify(S));
+    if(firebaseReady&&dbRef)dbRef.set(S);
+    renderPage();toast('Datos eliminados');
+  });
 }
 
 /* ═══════════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════════ */
-loadState();
-updateUserNames();
-startRealtimeSync();
+loadState();updateUserNames();startRealtimeSync();
 document.querySelectorAll('.overlay').forEach(ov=>{ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open')})});
 </script>
 </body>
