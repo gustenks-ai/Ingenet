@@ -13,8 +13,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js" onerror="window._fbFailed=true"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js" onerror="window._fbFailed=true"></script>
 <style>
 :root{--bg:#040911;--bg2:#080f1e;--bg3:#0c1628;--card:#0d1930;--card2:#101f38;--glass:rgba(13,25,48,0.85);--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--mint:#00e5b3;--mint2:#00c49a;--blue:#3b9eff;--pink:#ff5a7e;--gold:#ffd166;--purple:#a78bfa;--text:#eef2ff;--text2:#6b85a8;--text3:#344760;--r:20px;--rsm:12px;--shadow:0 8px 32px rgba(0,0,0,0.4)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -431,7 +431,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
    ═══════════════════════════════════════════════════ */
 const firebaseConfig={apiKey:"AIzaSyBBLB80afr29DgXmEjSifkLO_9ZEprxYec",authDomain:"canetinha-gg.firebaseapp.com",databaseURL:"https://canetinha-gg-default-rtdb.europe-west1.firebasedatabase.app",projectId:"canetinha-gg",storageBucket:"canetinha-gg.firebasestorage.app",messagingSenderId:"197868616428",appId:"1:197868616428:web:9e8908c15da8179e2143c9"};
 let firebaseReady=false,dbRef=null;
-try{firebase.initializeApp(firebaseConfig);dbRef=firebase.database().ref('gg_finances');firebaseReady=true}catch(e){console.warn('Firebase error:',e.message)}
+try{if(typeof firebase==='undefined')throw new Error('SDK not loaded');firebase.initializeApp(firebaseConfig);dbRef=firebase.database().ref('gg_finances');firebaseReady=true}catch(e){console.warn('Firebase no disponible, modo local:',e.message)}
 
 /* ═══════════════════════════════════════════════════
    STATE v4.6 — CATEGORÍAS LIMPIAS
