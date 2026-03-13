@@ -280,7 +280,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
       <div class="sgroup"><div class="sgroup-title">SEGURIDAD</div><div class="srow"><div><div class="srow-lbl">PIN de acceso</div><div class="srow-sub">Cambia tu PIN de 4 dígitos</div></div><span class="srow-action" onclick="changePin()">Cambiar</span></div></div>
       <div class="sgroup"><div class="sgroup-title">CATEGORÍAS</div><div id="cat-settings-list"></div><div class="srow"><div><div class="srow-lbl">Gestionar categorías</div><div class="srow-sub">Añadir, editar o eliminar</div></div><span class="srow-action" onclick="openCategoryManager()">Abrir 🏷️</span></div></div>
       <div class="sgroup"><div class="sgroup-title">DATOS</div><div class="srow"><div><div class="srow-lbl">Exportar Excel</div></div><span class="srow-action" onclick="exportExcel()">📊</span></div><div class="srow"><div><div class="srow-lbl">Exportar CSV</div></div><span class="srow-action" onclick="exportCSV()">📄</span></div><div class="srow"><div><div class="srow-lbl" style="color:var(--pink)">Borrar todos los datos</div></div><span class="srow-action" style="color:var(--pink)" onclick="clearAllData()">Borrar</span></div></div>
-      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v4.5 🏷️<br>Categorías personalizables + Sync</p>
+      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v4.6<br>Categorías personalizables + Sync</p>
     </div>
   </div>
   <nav class="bnav">
@@ -434,7 +434,7 @@ let firebaseReady=false,dbRef=null;
 try{firebase.initializeApp(firebaseConfig);dbRef=firebase.database().ref('gg_finances');firebaseReady=true}catch(e){console.warn('Firebase error:',e.message)}
 
 /* ═══════════════════════════════════════════════════
-   STATE v4.5 - CATEGORÍAS ACTUALIZADAS
+   STATE v4.6 — CATEGORÍAS LIMPIAS
    ═══════════════════════════════════════════════════ */
 const DEFAULT_CATS=[
   {id:'alimentacion',name:'Alimentación',icon:'🛒',color:'#ff5a7e',type:'gasto'},
@@ -448,7 +448,7 @@ const DEFAULT_CATS=[
   {id:'luz',name:'Luz',icon:'💡',color:'#ffd166',type:'gasto'},
   {id:'agua',name:'Agua',icon:'💧',color:'#4dd0e1',type:'gasto'},
   {id:'gas',name:'Gas',icon:'🔥',color:'#ff8a65',type:'gasto'},
-  {id:'internet',name:'Internet',icon:'📡',color:'#3b9eff',type:'gasto'},
+  {id:'internet',name:'Internet / Móvil',icon:'📡',color:'#3b9eff',type:'gasto'},
   {id:'tarjeta_credito',name:'Tarjeta de Crédito',icon:'💳',color:'#e040fb',type:'gasto'},
   {id:'otros',name:'Otros',icon:'📦',color:'#78909c',type:'gasto'}
 ];
@@ -465,38 +465,44 @@ const DEFAULT_INCOME_CATS=[
 const EMOJI_OPTIONS=['🛒','🚗','🏠','🎬','💊','👕','📚','📱','🍽️','💡','💧','🔥','📡','📦','⛽','✈️','🏋️','💇','🎮','🍺','☕','🧹','📞','🎵','🏥','💻','🔧','🎂','🧸','🚌','🏦','🎓','🛍️','🧴','🍕','🎭','⚽','🏖️','💐','🪥','💰','💵','💼','🤝','📈','🎯','🏆','⭐','📊','💎','🪙','🔑','💳'];
 const CAT_COLORS=['#ff5a7e','#3b9eff','#ffd166','#a78bfa','#00e5b3','#ff8a65','#4dd0e1','#ba68c8','#ef5350','#78909c','#ec407a','#8d6e63','#22c55e','#f97316','#06b6d4','#e040fb'];
 
+/* Categorías a eliminar de datos existentes (migración limpia) */
+const REMOVE_CAT_IDS=['mascotas','regalos','educacion'];
+/* Categorías a asegurar en datos existentes */
+const ENSURE_CATS=[
+  {id:'luz',name:'Luz',icon:'💡',color:'#ffd166',type:'gasto'},
+  {id:'agua',name:'Agua',icon:'💧',color:'#4dd0e1',type:'gasto'},
+  {id:'gas',name:'Gas',icon:'🔥',color:'#ff8a65',type:'gasto'},
+  {id:'internet',name:'Internet / Móvil',icon:'📡',color:'#3b9eff',type:'gasto'},
+  {id:'tarjeta_credito',name:'Tarjeta de Crédito',icon:'💳',color:'#e040fb',type:'gasto'}
+];
+
 function defaultState(){return{pin:'1221',users:{u1:'Gustavo',u2:'Gabrielle'},categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),incomeCategories:JSON.parse(JSON.stringify(DEFAULT_INCOME_CATS)),movements:[],budgets:{},goals:[],savings:[],lastModified:0}}
+
+function runMigrations(){
+  let dirty=false;
+  // 1. Eliminar categorías obsoletas
+  const before=S.categories.length;
+  S.categories=S.categories.filter(c=>!REMOVE_CAT_IDS.includes(c.id));
+  if(S.categories.length!==before)dirty=true;
+  // 2. Asegurar categorías nuevas
+  ENSURE_CATS.forEach(cat=>{
+    if(!S.categories.find(c=>c.id===cat.id)){S.categories.push(cat);dirty=true}
+  });
+  // 3. Asegurar type en todas las cats
+  S.categories.forEach(c=>{if(!c.type){c.type='gasto';dirty=true}});
+  // 4. Asegurar incomeCategories
+  if(!S.incomeCategories||!S.incomeCategories.length){
+    S.incomeCategories=JSON.parse(JSON.stringify(DEFAULT_INCOME_CATS));dirty=true;
+  }
+  S.incomeCategories.forEach(c=>{if(!c.type){c.type='ingreso';dirty=true}});
+  if(dirty)saveState();
+}
+
 let S=defaultState();
 let currentUser=null,viewMonth=new Date().getMonth(),viewYear=new Date().getFullYear(),currentPage='dashboard',histFilter='all',movType='gasto',pieChart=null,barChart=null,catOvTab='month',catOvCat=null,reportTab='monthly',isSyncing=false,initialSyncDone=false,selectedEmoji='📌';
 let catMgrType='gasto',catMgrEmoji='📌',catMgrColor='#ff5a7e';
 let catEditEmoji='📌',catEditColor='#ff5a7e';
 const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
-/* ═══════════════════════════════════════════════════
-   🔄 MIGRACIONES
-   ═══════════════════════════════════════════════════ */
-function migrateCategories(){
-  const removeCats=['mascotas','regalos','educacion'];
-  const addCats=[
-    {id:'luz',name:'Luz',icon:'💡',color:'#ffd166',type:'gasto'},
-    {id:'agua',name:'Agua',icon:'💧',color:'#4dd0e1',type:'gasto'},
-    {id:'gas',name:'Gas',icon:'🔥',color:'#ff8a65',type:'gasto'},
-    {id:'internet',name:'Internet',icon:'📡',color:'#3b9eff',type:'gasto'},
-    {id:'tarjeta_credito',name:'Tarjeta de Crédito',icon:'💳',color:'#e040fb',type:'gasto'}
-  ];
-  S.categories=S.categories.filter(c=>!removeCats.includes(c.id));
-  addCats.forEach(cat=>{if(!S.categories.find(c=>c.id===cat.id))S.categories.push(cat)});
-  // Asegurar type en todas
-  S.categories.forEach(c=>{if(!c.type)c.type='gasto'});
-}
-
-function migrateToV45(){
-  if(!S.incomeCategories||!S.incomeCategories.length){
-    S.incomeCategories=JSON.parse(JSON.stringify(DEFAULT_INCOME_CATS));
-  }
-  S.incomeCategories.forEach(c=>{if(!c.type)c.type='ingreso'});
-  S._migration45=true;
-}
 
 /* ═══════════════════════════════════════════════════
    🔄 SMART SYNC ENGINE
@@ -510,7 +516,7 @@ function mergeStates(local,remote){if(!remote)return local;const merged={...loca
   merged.movements=mergeById(local.movements,remote.movements);merged.goals=mergeById(local.goals,remote.goals);merged.savings=mergeById(local.savings,remote.savings);merged.budgets=mergeBudgets(local.budgets,remote.budgets);merged.lastModified=Math.max(local.lastModified||0,remote.lastModified||0);return merged}
 function saveState(){S.lastModified=Date.now();localStorage.setItem('gg_finances',JSON.stringify(S));if(firebaseReady&&dbRef){setSyncStatus('syncing');dbRef.once('value').then(snap=>{const r=snap.val();if(r){S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S))}return dbRef.set(S)}).then(()=>setSyncStatus('online')).catch(e=>{console.warn('Sync:',e);setSyncStatus('offline')})}}
 function manualSync(){if(!firebaseReady||!dbRef){toast('Firebase no disponible','err');return}setSyncStatus('syncing');dbRef.once('value').then(snap=>{const r=snap.val();if(r)S=mergeStates(S,r);S.lastModified=Date.now();localStorage.setItem('gg_finances',JSON.stringify(S));return dbRef.set(S)}).then(()=>{setSyncStatus('online');updateUserNames();renderPage();toast('Sincronizado ✅')}).catch(e=>{setSyncStatus('offline');toast('Error de conexión','err')})}
-function startRealtimeSync(){if(!firebaseReady||!dbRef){setSyncStatus('offline');const el=document.getElementById('set-sync-status');if(el)el.textContent='Solo local';return}firebase.database().ref('.info/connected').on('value',s=>{setSyncStatus(s.val()?'online':'offline');const el=document.getElementById('set-sync-status');if(el)el.textContent=s.val()?'🟢 Conectado':'🔴 Sin conexión'});dbRef.on('value',snap=>{if(isSyncing)return;const r=snap.val();if(!r)return;isSyncing=true;if(!initialSyncDone){S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S));initialSyncDone=true}else{const bc=activeItems(S.movements).length;S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S));if(activeItems(S.movements).length!==bc)toast('Datos sincronizados 🔄')}updateUserNames();renderPage();isSyncing=false})}
+function startRealtimeSync(){if(!firebaseReady||!dbRef){setSyncStatus('offline');const el=document.getElementById('set-sync-status');if(el)el.textContent='Solo local';return}firebase.database().ref('.info/connected').on('value',s=>{setSyncStatus(s.val()?'online':'offline');const el=document.getElementById('set-sync-status');if(el)el.textContent=s.val()?'🟢 Conectado':'🔴 Sin conexión'});dbRef.on('value',snap=>{if(isSyncing)return;const r=snap.val();if(!r)return;isSyncing=true;if(!initialSyncDone){S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S));runMigrations();initialSyncDone=true}else{const bc=activeItems(S.movements).length;S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S));if(activeItems(S.movements).length!==bc)toast('Datos sincronizados 🔄')}updateUserNames();renderPage();isSyncing=false})}
 function setSyncStatus(s){const d=document.getElementById('sync-dot');if(d)d.className='sync-indicator sync-'+s;const st=document.getElementById('sync-status');if(st){if(s==='online')st.innerHTML='<span style="color:var(--mint)">🟢 Sincronizado</span>';else if(s==='offline')st.innerHTML='<span style="color:var(--pink)">🔴 Sin conexión</span>';else st.innerHTML='<span style="color:var(--gold)">🟡 Sincronizando...</span>'}}
 function loadState(){try{const r=localStorage.getItem('gg_finances');if(r){S={...defaultState(),...JSON.parse(r)};if(!S.categories||!S.categories.length)S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));if(!S.incomeCategories||!S.incomeCategories.length)S.incomeCategories=JSON.parse(JSON.stringify(DEFAULT_INCOME_CATS));if(!S.lastModified)S.lastModified=0}}catch(e){}}
 
@@ -671,15 +677,10 @@ function clearAllData(){customConfirm('⚠️ ¿Borrar TODOS los datos?','Esta a
    INIT
    ═══════════════════════════════════════════════════ */
 loadState();
-// Migración categorías (elimina mascotas/regalos/educacion, añade luz/agua/gas/internet/tarjeta crédito)
-if(!S._catMigration45){migrateCategories();S._catMigration45=true;saveState()}
-// Migración v4.5 - incomeCategories
-if(!S._migration45){migrateToV45();saveState()}
+runMigrations(); // limpia mascotas/regalos/educacion, añade nuevas cats si faltan
 updateUserNames();
 startRealtimeSync();
-// Preview en tiempo real al escribir nombre categoría
 document.getElementById('catmgr-name').addEventListener('input',updateCatMgrPreview);
-// Cerrar overlays al tocar fuera
 document.querySelectorAll('.overlay').forEach(ov=>{ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open')})});
 </script>
 </body>
