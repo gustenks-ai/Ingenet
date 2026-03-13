@@ -168,27 +168,21 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .emoji-opt{width:100%;aspect-ratio:1;border-radius:10px;border:2px solid var(--border);background:var(--card);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .emoji-opt:hover,.emoji-opt.selected{border-color:var(--mint);background:rgba(0,229,179,.1);transform:scale(1.1)}
 
-/* ═══════════════════════════════════════════════════
-   🏷️ ESTILOS MÓDULO CATEGORÍAS MEJORADO
-   ═══════════════════════════════════════════════════ */
+/* ═══ CATEGORY MANAGER STYLES ═══ */
 .fab-categories{position:fixed;bottom:90px;left:20px;width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--purple),#7c3aed);border:none;color:#fff;font-size:20px;cursor:pointer;z-index:99;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(167,139,250,.35);transition:transform .2s}
 .fab-categories:active{transform:scale(.9)}
 #app-screen.active .fab-categories{display:flex}
-
 .cat-type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
 .cat-tbtn{padding:12px;border-radius:var(--rsm);border:2px solid var(--border);background:var(--card);color:var(--text2);font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center}
 .cat-tbtn.active-gasto{border-color:var(--pink);color:var(--pink);background:rgba(255,90,126,.08)}
 .cat-tbtn.active-ingreso{border-color:var(--mint);color:var(--mint);background:rgba(0,229,179,.08)}
-
 .color-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .color-opt{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all .15s}
 .color-opt.selected{border-color:#fff;transform:scale(1.15);box-shadow:0 0 12px rgba(255,255,255,.25)}
 .color-opt:active{transform:scale(.9)}
-
 .cat-preview{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:14px 16px;margin-bottom:16px}
 .cat-preview-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;font-size:14px;font-weight:600}
 .cat-preview-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
-
 .cat-list-section{margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
 .cat-list-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .cat-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);margin-bottom:6px;border-left:3px solid}
@@ -197,7 +191,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .cat-list-item-actions{display:flex;gap:4px}
 .cat-list-btn{background:none;border:none;font-size:16px;cursor:pointer;padding:4px 8px;border-radius:8px;transition:background .15s}
 .cat-list-btn:active{background:rgba(255,255,255,.08)}
-.cat-list-badge{font-size:9px;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.06);color:var(--text3);font-weight:600}
 
 @media(min-width:768px){.app-content{max-width:520px;margin:0 auto;padding:0 24px 108px}.bnav{max-width:520px;left:50%;transform:translateX(-50%);border-radius:22px 22px 0 0;border:1px solid var(--border)}.modal{max-width:520px;margin:0 auto}.overlay{justify-content:center;align-items:flex-end}}
 </style></head>
@@ -225,9 +218,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 </div>
 
 <div id="app-screen" class="screen">
-  <!-- Botón flotante para gestionar categorías -->
   <button class="fab-categories" id="fab-cat" onclick="openCategoryManager()" title="Gestionar categorías">🏷️</button>
-
   <div class="app-header">
     <div class="hdr-user" onclick="openProfile()"><div class="hdr-avatar" id="hdr-avatar">👤</div><div><div class="hdr-name" id="hdr-name">Usuario</div><div class="hdr-sub">Ver perfil →</div></div></div>
     <div class="hdr-actions">
@@ -289,7 +280,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
       <div class="sgroup"><div class="sgroup-title">SEGURIDAD</div><div class="srow"><div><div class="srow-lbl">PIN de acceso</div><div class="srow-sub">Cambia tu PIN de 4 dígitos</div></div><span class="srow-action" onclick="changePin()">Cambiar</span></div></div>
       <div class="sgroup"><div class="sgroup-title">CATEGORÍAS</div><div id="cat-settings-list"></div><div class="srow"><div><div class="srow-lbl">Gestionar categorías</div><div class="srow-sub">Añadir, editar o eliminar</div></div><span class="srow-action" onclick="openCategoryManager()">Abrir 🏷️</span></div></div>
       <div class="sgroup"><div class="sgroup-title">DATOS</div><div class="srow"><div><div class="srow-lbl">Exportar Excel</div></div><span class="srow-action" onclick="exportExcel()">📊</span></div><div class="srow"><div><div class="srow-lbl">Exportar CSV</div></div><span class="srow-action" onclick="exportCSV()">📄</span></div><div class="srow"><div><div class="srow-lbl" style="color:var(--pink)">Borrar todos los datos</div></div><span class="srow-action" style="color:var(--pink)" onclick="clearAllData()">Borrar</span></div></div>
-      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v4.4 🏷️<br>Categorías personalizables + Sync</p>
+      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:24px;padding-bottom:20px">G&amp;G Finances v4.5 🏷️<br>Categorías personalizables + Sync</p>
     </div>
   </div>
   <nav class="bnav">
@@ -367,47 +358,27 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
   <button class="btn btn-ghost btn-mt" onclick="closeOverlay('savings-overlay')">Cancelar</button>
 </div></div>
 
-<!-- MODAL: GESTOR DE CATEGORÍAS MEJORADO -->
+<!-- MODAL: GESTOR DE CATEGORÍAS -->
 <div class="overlay" id="catmgr-overlay"><div class="modal">
   <div class="modal-handle"></div>
   <div class="modal-title">🏷️ Gestionar Categorías</div>
   <div class="modal-sub">Añade, edita o elimina categorías de gastos e ingresos</div>
-
-  <!-- Toggle tipo -->
   <div class="cat-type-toggle">
     <button class="cat-tbtn active-gasto" id="catmgr-btn-gasto" onclick="setCatMgrType('gasto')">💸 Gastos</button>
     <button class="cat-tbtn" id="catmgr-btn-ingreso" onclick="setCatMgrType('ingreso')">💰 Ingresos</button>
   </div>
-
-  <!-- Formulario nueva categoría -->
   <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px">
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--purple);margin-bottom:14px" id="catmgr-form-title">➕ Nueva categoría de gasto</div>
-
     <div class="fgroup"><label class="flabel">Nombre</label><input class="finput" id="catmgr-name" placeholder="Ej: Gasolina, Gimnasio..." maxlength="25" autocomplete="off"></div>
-
-    <div class="fgroup"><label class="flabel">Icono</label>
-      <div class="emoji-grid" id="catmgr-emojis"></div>
-    </div>
-
-    <div class="fgroup"><label class="flabel">Color</label>
-      <div class="color-grid" id="catmgr-colors"></div>
-    </div>
-
-    <!-- Preview -->
-    <div class="cat-preview">
-      <div class="cat-preview-label">Vista previa</div>
-      <div class="cat-preview-chip" id="catmgr-preview"><span id="catmgr-prev-icon">📌</span> <span id="catmgr-prev-name">Nueva categoría</span></div>
-    </div>
-
-    <button class="btn btn-primary" onclick="saveCatMgr()" id="catmgr-save-btn">➕ Crear categoría</button>
+    <div class="fgroup"><label class="flabel">Icono</label><div class="emoji-grid" id="catmgr-emojis"></div></div>
+    <div class="fgroup"><label class="flabel">Color</label><div class="color-grid" id="catmgr-colors"></div></div>
+    <div class="cat-preview"><div class="cat-preview-label">Vista previa</div><div class="cat-preview-chip" id="catmgr-preview"><span id="catmgr-prev-icon">📌</span> <span id="catmgr-prev-name">Nueva categoría</span></div></div>
+    <button class="btn btn-primary" onclick="saveCatMgr()">➕ Crear categoría</button>
   </div>
-
-  <!-- Lista de categorías existentes -->
   <div class="cat-list-section" id="catmgr-list-section">
     <div class="cat-list-title" id="catmgr-list-title">📋 Categorías de gastos</div>
     <div id="catmgr-list"></div>
   </div>
-
   <button class="btn btn-ghost btn-mt" onclick="closeOverlay('catmgr-overlay')" style="margin-top:16px">Cerrar</button>
 </div></div>
 
@@ -417,12 +388,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
   <div class="modal-title">✏️ Editar Categoría</div>
   <div class="modal-sub" id="catedit-sub">Modifica nombre, icono o color</div>
   <div class="fgroup"><label class="flabel">Nombre</label><input class="finput" id="catedit-name" maxlength="25"></div>
-  <div class="fgroup"><label class="flabel">Icono</label>
-    <div class="emoji-grid" id="catedit-emojis"></div>
-  </div>
-  <div class="fgroup"><label class="flabel">Color</label>
-    <div class="color-grid" id="catedit-colors"></div>
-  </div>
+  <div class="fgroup"><label class="flabel">Icono</label><div class="emoji-grid" id="catedit-emojis"></div></div>
+  <div class="fgroup"><label class="flabel">Color</label><div class="color-grid" id="catedit-colors"></div></div>
   <input type="hidden" id="catedit-id">
   <input type="hidden" id="catedit-type">
   <button class="btn btn-primary" onclick="saveCatEdit()">Guardar cambios</button>
@@ -467,7 +434,7 @@ let firebaseReady=false,dbRef=null;
 try{firebase.initializeApp(firebaseConfig);dbRef=firebase.database().ref('gg_finances');firebaseReady=true}catch(e){console.warn('Firebase error:',e.message)}
 
 /* ═══════════════════════════════════════════════════
-   STATE v4.4 - CATEGORÍAS MEJORADAS
+   STATE v4.5 - CATEGORÍAS ACTUALIZADAS
    ═══════════════════════════════════════════════════ */
 const DEFAULT_CATS=[
   {id:'alimentacion',name:'Alimentación',icon:'🛒',color:'#ff5a7e',type:'gasto'},
@@ -476,13 +443,13 @@ const DEFAULT_CATS=[
   {id:'ocio',name:'Ocio',icon:'🎬',color:'#a78bfa',type:'gasto'},
   {id:'salud',name:'Salud',icon:'💊',color:'#00e5b3',type:'gasto'},
   {id:'ropa',name:'Ropa',icon:'👕',color:'#ff8a65',type:'gasto'},
-  {id:'educacion',name:'Educación',icon:'📚',color:'#4dd0e1',type:'gasto'},
   {id:'suscripciones',name:'Suscripciones',icon:'📱',color:'#ba68c8',type:'gasto'},
   {id:'restaurantes',name:'Restaurantes',icon:'🍽️',color:'#ef5350',type:'gasto'},
   {id:'luz',name:'Luz',icon:'💡',color:'#ffd166',type:'gasto'},
   {id:'agua',name:'Agua',icon:'💧',color:'#4dd0e1',type:'gasto'},
   {id:'gas',name:'Gas',icon:'🔥',color:'#ff8a65',type:'gasto'},
   {id:'internet',name:'Internet',icon:'📡',color:'#3b9eff',type:'gasto'},
+  {id:'tarjeta_credito',name:'Tarjeta de Crédito',icon:'💳',color:'#e040fb',type:'gasto'},
   {id:'otros',name:'Otros',icon:'📦',color:'#78909c',type:'gasto'}
 ];
 
@@ -495,8 +462,8 @@ const DEFAULT_INCOME_CATS=[
   {id:'otros_ingreso',name:'Otros',icon:'📦',color:'#78909c',type:'ingreso'}
 ];
 
-const EMOJI_OPTIONS=['🛒','🚗','🏠','🎬','💊','👕','📚','📱','🍽️','💡','💧','🔥','📡','📦','⛽','✈️','🏋️','💇','🎮','🍺','☕','🧹','📞','🎵','🏥','💻','🔧','🎂','🧸','🚌','🏦','🎓','🛍️','🧴','🍕','🎭','⚽','🏖️','💐','🪥','💰','💵','💼','🤝','📈','🎯','🏆','⭐','📊','💎','🪙','🔑'];
-const CAT_COLORS=['#ff5a7e','#3b9eff','#ffd166','#a78bfa','#00e5b3','#ff8a65','#4dd0e1','#ba68c8','#ef5350','#78909c','#ec407a','#8d6e63','#22c55e','#f97316','#06b6d4','#84cc16'];
+const EMOJI_OPTIONS=['🛒','🚗','🏠','🎬','💊','👕','📚','📱','🍽️','💡','💧','🔥','📡','📦','⛽','✈️','🏋️','💇','🎮','🍺','☕','🧹','📞','🎵','🏥','💻','🔧','🎂','🧸','🚌','🏦','🎓','🛍️','🧴','🍕','🎭','⚽','🏖️','💐','🪥','💰','💵','💼','🤝','📈','🎯','🏆','⭐','📊','💎','🪙','🔑','💳'];
+const CAT_COLORS=['#ff5a7e','#3b9eff','#ffd166','#a78bfa','#00e5b3','#ff8a65','#4dd0e1','#ba68c8','#ef5350','#78909c','#ec407a','#8d6e63','#22c55e','#f97316','#06b6d4','#e040fb'];
 
 function defaultState(){return{pin:'1221',users:{u1:'Gustavo',u2:'Gabrielle'},categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),incomeCategories:JSON.parse(JSON.stringify(DEFAULT_INCOME_CATS)),movements:[],budgets:{},goals:[],savings:[],lastModified:0}}
 let S=defaultState();
@@ -506,44 +473,39 @@ let catEditEmoji='📌',catEditColor='#ff5a7e';
 const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 /* ═══════════════════════════════════════════════════
-   🔄 MIGRACIÓN v4.4 - Agregar type a categorías
-      e incomeCategories al state
+   🔄 MIGRACIONES
    ═══════════════════════════════════════════════════ */
-function migrateToV44(){
-  // Asegurar que todas las categorías de gasto tengan type
-  S.categories.forEach(c=>{if(!c.type)c.type='gasto'});
-  // Crear incomeCategories si no existe
-  if(!S.incomeCategories||!S.incomeCategories.length){
-    S.incomeCategories=JSON.parse(JSON.stringify(DEFAULT_INCOME_CATS));
-  }
-  // Asegurar type en incomeCategories
-  S.incomeCategories.forEach(c=>{if(!c.type)c.type='ingreso'});
-  S._migration44=true;
-}
-
 function migrateCategories(){
-  const removeCats=['mascotas','regalos'];
+  const removeCats=['mascotas','regalos','educacion'];
   const addCats=[
     {id:'luz',name:'Luz',icon:'💡',color:'#ffd166',type:'gasto'},
     {id:'agua',name:'Agua',icon:'💧',color:'#4dd0e1',type:'gasto'},
     {id:'gas',name:'Gas',icon:'🔥',color:'#ff8a65',type:'gasto'},
-    {id:'internet',name:'Internet',icon:'📡',color:'#3b9eff',type:'gasto'}
+    {id:'internet',name:'Internet',icon:'📡',color:'#3b9eff',type:'gasto'},
+    {id:'tarjeta_credito',name:'Tarjeta de Crédito',icon:'💳',color:'#e040fb',type:'gasto'}
   ];
   S.categories=S.categories.filter(c=>!removeCats.includes(c.id));
   addCats.forEach(cat=>{if(!S.categories.find(c=>c.id===cat.id))S.categories.push(cat)});
-  S._catMigration43=true;
+  // Asegurar type en todas
+  S.categories.forEach(c=>{if(!c.type)c.type='gasto'});
+}
+
+function migrateToV45(){
+  if(!S.incomeCategories||!S.incomeCategories.length){
+    S.incomeCategories=JSON.parse(JSON.stringify(DEFAULT_INCOME_CATS));
+  }
+  S.incomeCategories.forEach(c=>{if(!c.type)c.type='ingreso'});
+  S._migration45=true;
 }
 
 /* ═══════════════════════════════════════════════════
-   🔄 SMART SYNC ENGINE v4.4
+   🔄 SMART SYNC ENGINE
    ═══════════════════════════════════════════════════ */
 function mergeById(local,remote){const m=new Map();(local||[]).forEach(i=>{if(i&&i.id)m.set(i.id,i)});(remote||[]).forEach(i=>{if(i&&i.id){const ex=m.get(i.id);if(ex&&ex.ts&&i.ts){if(i.ts>=ex.ts)m.set(i.id,i)}else if(!ex){m.set(i.id,i)}}});return Array.from(m.values())}
 function activeItems(arr){return(arr||[]).filter(i=>!i._deleted)}
 function mergeBudgets(l,r){const m={...(l||{})};Object.keys(r||{}).forEach(k=>{m[k]=m[k]?{...m[k],...(r[k]||{})}:(r[k]||{})});return m}
 function mergeStates(local,remote){if(!remote)return local;const merged={...local};if((remote.lastModified||0)>=(local.lastModified||0)){merged.pin=remote.pin||local.pin;merged.users=remote.users||local.users}
-  // Merge categorías de gasto
   if(remote.categories&&remote.categories.length)merged.categories=remote.categories;
-  // Merge categorías de ingreso
   if(remote.incomeCategories&&remote.incomeCategories.length)merged.incomeCategories=remote.incomeCategories;
   merged.movements=mergeById(local.movements,remote.movements);merged.goals=mergeById(local.goals,remote.goals);merged.savings=mergeById(local.savings,remote.savings);merged.budgets=mergeBudgets(local.budgets,remote.budgets);merged.lastModified=Math.max(local.lastModified||0,remote.lastModified||0);return merged}
 function saveState(){S.lastModified=Date.now();localStorage.setItem('gg_finances',JSON.stringify(S));if(firebaseReady&&dbRef){setSyncStatus('syncing');dbRef.once('value').then(snap=>{const r=snap.val();if(r){S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S))}return dbRef.set(S)}).then(()=>setSyncStatus('online')).catch(e=>{console.warn('Sync:',e);setSyncStatus('offline')})}}
@@ -561,15 +523,7 @@ function fmtS(n){return Math.abs(n)>=1000?'€'+(Math.abs(n)/1000).toFixed(1)+'k
 function genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
 function mkk(y,m){return y+'-'+String(m+1).padStart(2,'0')}
 function mMovs(y,m){return activeItems(S.movements).filter(mv=>mv.date&&mv.date.startsWith(mkk(y!==undefined?y:viewYear,m!==undefined?m:viewMonth)))}
-function getCat(id){
-  // Buscar en gastos
-  let c=S.categories.find(c=>c.id===id);
-  if(c)return c;
-  // Buscar en ingresos
-  c=(S.incomeCategories||[]).find(c=>c.id===id);
-  if(c)return c;
-  return{id:'otros',name:'Otros',icon:'📦',color:'#78909c',type:'gasto'};
-}
+function getCat(id){let c=S.categories.find(c=>c.id===id);if(c)return c;c=(S.incomeCategories||[]).find(c=>c.id===id);if(c)return c;return{id:'otros',name:'Otros',icon:'📦',color:'#78909c',type:'gasto'}}
 function getIncomeCat(id){return(S.incomeCategories||[]).find(c=>c.id===id)||{id:'otros_ingreso',name:'Otros',icon:'📦',color:'#78909c',type:'ingreso'}}
 function uName(u){return u==='gustavo'?S.users.u1:S.users.u2}
 function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;setTimeout(()=>t.classList.add('show'),10);setTimeout(()=>t.classList.remove('show'),2800)}
@@ -599,201 +553,39 @@ function openOverlay(id){document.getElementById(id).classList.add('open')}
 function closeOverlay(id){document.getElementById(id).classList.remove('open')}
 
 /* ═══════════════════════════════════════════════════
-   MOVEMENT MODAL - AHORA CON CATEGORÍAS DINÁMICAS
+   MOVEMENT MODAL
    ═══════════════════════════════════════════════════ */
-function setMovType(t){movType=t;document.getElementById('tbtn-g').className='tbtn'+(t==='gasto'?' tg':'');document.getElementById('tbtn-i').className='tbtn'+(t==='ingreso'?' ti':'');document.getElementById('fg-cat').style.display=t==='gasto'?'block':'none';document.getElementById('fg-subcat').style.display=t==='gasto'?'block':'none';document.getElementById('fg-incat').style.display=t==='ingreso'?'block':'none';
-  // Llenar selects según tipo
-  if(t==='gasto')populateCatSelect();
-  else populateIncomeCatSelect();
-}
+function setMovType(t){movType=t;document.getElementById('tbtn-g').className='tbtn'+(t==='gasto'?' tg':'');document.getElementById('tbtn-i').className='tbtn'+(t==='ingreso'?' ti':'');document.getElementById('fg-cat').style.display=t==='gasto'?'block':'none';document.getElementById('fg-subcat').style.display=t==='gasto'?'block':'none';document.getElementById('fg-incat').style.display=t==='ingreso'?'block':'none';if(t==='gasto')populateCatSelect();else populateIncomeCatSelect()}
 function populateCatSelect(){document.getElementById('mov-cat').innerHTML=S.categories.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('')}
-function populateIncomeCatSelect(){
-  const cats=S.incomeCategories||DEFAULT_INCOME_CATS;
-  document.getElementById('mov-intype').innerHTML=cats.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
-}
+function populateIncomeCatSelect(){const cats=S.incomeCategories||DEFAULT_INCOME_CATS;document.getElementById('mov-intype').innerHTML=cats.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('')}
 function openAddMovement(){document.getElementById('mov-modal-title').textContent='Nuevo movimiento';document.getElementById('mov-modal-sub').textContent='Registra un gasto o ingreso';document.getElementById('mov-amt').value='';document.getElementById('mov-date').value=new Date().toISOString().split('T')[0];document.getElementById('mov-user').value=currentUser||'gustavo';document.getElementById('mov-subcat').value='';document.getElementById('mov-desc').value='';document.getElementById('mov-method').value='Tarjeta';document.getElementById('mov-edit-id').value='';setMovType('gasto');populateCatSelect();populateIncomeCatSelect();openOverlay('mov-overlay')}
 function openEditMovement(id){const mv=activeItems(S.movements).find(m=>m.id===id);if(!mv)return;document.getElementById('mov-modal-title').textContent='Editar movimiento';document.getElementById('mov-modal-sub').textContent='Modifica los datos';document.getElementById('mov-amt').value=mv.amount;document.getElementById('mov-date').value=mv.date;document.getElementById('mov-user').value=mv.user;document.getElementById('mov-desc').value=mv.desc||'';document.getElementById('mov-method').value=mv.method||'Tarjeta';document.getElementById('mov-edit-id').value=id;setMovType(mv.type);populateCatSelect();populateIncomeCatSelect();if(mv.type==='gasto'){document.getElementById('mov-cat').value=mv.category||'otros';document.getElementById('mov-subcat').value=mv.subcat||''}else{document.getElementById('mov-intype').value=mv.intype||mv.category||'sueldo'}openOverlay('mov-overlay')}
-function saveMovement(){const amt=parseFloat(document.getElementById('mov-amt').value);if(!amt||amt<=0){toast('Introduce un importe válido','err');return}const date=document.getElementById('mov-date').value;if(!date){toast('Selecciona una fecha','err');return}const editId=document.getElementById('mov-edit-id').value;
-  const inCatId=movType==='ingreso'?document.getElementById('mov-intype').value:'';
-  const inCat=inCatId?getIncomeCat(inCatId):null;
-  const mv={id:editId||genId(),type:movType,amount:amt,date:date,user:document.getElementById('mov-user').value,category:movType==='gasto'?document.getElementById('mov-cat').value:inCatId,subcat:movType==='gasto'?document.getElementById('mov-subcat').value:'',intype:inCat?inCat.name:(movType==='ingreso'?'Otros':''),desc:document.getElementById('mov-desc').value,method:document.getElementById('mov-method').value,ts:Date.now()};if(editId){const idx=S.movements.findIndex(m=>m.id===editId);if(idx>=0)S.movements[idx]=mv}else{S.movements.push(mv)}saveState();closeOverlay('mov-overlay');renderPage();toast(editId?'Movimiento actualizado ✅':'Movimiento guardado ✅')}
+function saveMovement(){const amt=parseFloat(document.getElementById('mov-amt').value);if(!amt||amt<=0){toast('Introduce un importe válido','err');return}const date=document.getElementById('mov-date').value;if(!date){toast('Selecciona una fecha','err');return}const editId=document.getElementById('mov-edit-id').value;const inCatId=movType==='ingreso'?document.getElementById('mov-intype').value:'';const inCat=inCatId?getIncomeCat(inCatId):null;const mv={id:editId||genId(),type:movType,amount:amt,date:date,user:document.getElementById('mov-user').value,category:movType==='gasto'?document.getElementById('mov-cat').value:inCatId,subcat:movType==='gasto'?document.getElementById('mov-subcat').value:'',intype:inCat?inCat.name:(movType==='ingreso'?'Otros':''),desc:document.getElementById('mov-desc').value,method:document.getElementById('mov-method').value,ts:Date.now()};if(editId){const idx=S.movements.findIndex(m=>m.id===editId);if(idx>=0)S.movements[idx]=mv}else{S.movements.push(mv)}saveState();closeOverlay('mov-overlay');renderPage();toast(editId?'Movimiento actualizado ✅':'Movimiento guardado ✅')}
 function deleteMovement(id){customConfirm('¿Eliminar movimiento?','Esta acción no se puede deshacer',function(){const idx=S.movements.findIndex(m=>m.id===id);if(idx>=0){S.movements[idx]._deleted=true;S.movements[idx].ts=Date.now()}saveState();renderPage();toast('Movimiento eliminado ✅')})}
 function deleteGoal(id){customConfirm('¿Eliminar objetivo?','Se eliminará este objetivo de ahorro',function(){const idx=S.goals.findIndex(g=>g.id===id);if(idx>=0){S.goals[idx]._deleted=true;S.goals[idx].ts=Date.now()}saveState();renderPage();toast('Objetivo eliminado')})}
 
 /* ═══════════════════════════════════════════════════
-   🏷️ CATEGORY MANAGER - MÓDULO COMPLETO
+   🏷️ CATEGORY MANAGER
    ═══════════════════════════════════════════════════ */
-function openCategoryManager(){
-  catMgrType='gasto';
-  catMgrEmoji='📌';
-  catMgrColor=CAT_COLORS[0];
-  document.getElementById('catmgr-name').value='';
-  document.getElementById('catmgr-btn-gasto').className='cat-tbtn active-gasto';
-  document.getElementById('catmgr-btn-ingreso').className='cat-tbtn';
-  renderCatMgrEmojis();
-  renderCatMgrColors();
-  updateCatMgrPreview();
-  renderCatMgrList();
-  updateCatMgrFormTitle();
-  openOverlay('catmgr-overlay');
-}
-
-function setCatMgrType(type){
-  catMgrType=type;
-  document.getElementById('catmgr-btn-gasto').className='cat-tbtn'+(type==='gasto'?' active-gasto':'');
-  document.getElementById('catmgr-btn-ingreso').className='cat-tbtn'+(type==='ingreso'?' active-ingreso':'');
-  renderCatMgrList();
-  updateCatMgrFormTitle();
-}
-
-function updateCatMgrFormTitle(){
-  const title=document.getElementById('catmgr-form-title');
-  title.textContent=catMgrType==='gasto'?'➕ Nueva categoría de gasto':'➕ Nueva categoría de ingreso';
-  const listTitle=document.getElementById('catmgr-list-title');
-  listTitle.textContent=catMgrType==='gasto'?'📋 Categorías de gastos':'📋 Categorías de ingresos';
-}
-
-function renderCatMgrEmojis(){
-  document.getElementById('catmgr-emojis').innerHTML=EMOJI_OPTIONS.map(e=>
-    `<button class="emoji-opt${e===catMgrEmoji?' selected':''}" onclick="selectCatMgrEmoji(this,'${e}')" type="button">${e}</button>`
-  ).join('');
-}
-
-function selectCatMgrEmoji(el,emoji){
-  catMgrEmoji=emoji;
-  document.querySelectorAll('#catmgr-emojis .emoji-opt').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected');
-  updateCatMgrPreview();
-}
-
-function renderCatMgrColors(){
-  document.getElementById('catmgr-colors').innerHTML=CAT_COLORS.map(c=>
-    `<div class="color-opt${c===catMgrColor?' selected':''}" style="background:${c}" onclick="selectCatMgrColor(this,'${c}')"></div>`
-  ).join('');
-}
-
-function selectCatMgrColor(el,color){
-  catMgrColor=color;
-  document.querySelectorAll('#catmgr-colors .color-opt').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected');
-  updateCatMgrPreview();
-}
-
-function updateCatMgrPreview(){
-  const name=document.getElementById('catmgr-name').value.trim()||'Nueva categoría';
-  document.getElementById('catmgr-prev-icon').textContent=catMgrEmoji;
-  document.getElementById('catmgr-prev-name').textContent=name;
-  const chip=document.getElementById('catmgr-preview');
-  chip.style.background=catMgrColor+'22';
-  chip.style.color=catMgrColor;
-}
-
-// Preview en tiempo real al escribir
-document.addEventListener('DOMContentLoaded',()=>{
-  const inp=document.getElementById('catmgr-name');
-  if(inp)inp.addEventListener('input',updateCatMgrPreview);
-});
-
-function saveCatMgr(){
-  const name=document.getElementById('catmgr-name').value.trim();
-  if(!name){toast('Escribe un nombre','err');return}
-  const id=name.toLowerCase().replace(/[^a-z0-9áéíóúñü]/g,'_').replace(/[áéíóúñü]/g,c=>({á:'a',é:'e',í:'i',ó:'o',ú:'u',ñ:'n',ü:'u'}[c]||c));
-  const targetArr=catMgrType==='gasto'?S.categories:(S.incomeCategories||[]);
-  if(targetArr.find(c=>c.id===id)){toast('Ya existe una categoría con ese nombre','err');return}
-  const newCat={id,name,icon:catMgrEmoji,color:catMgrColor,type:catMgrType};
-  if(catMgrType==='gasto'){S.categories.push(newCat)}else{if(!S.incomeCategories)S.incomeCategories=[];S.incomeCategories.push(newCat)}
-  saveState();
-  document.getElementById('catmgr-name').value='';
-  catMgrEmoji='📌';
-  renderCatMgrEmojis();
-  updateCatMgrPreview();
-  renderCatMgrList();
-  renderPage();
-  toast('✅ Categoría "'+name+'" creada');
-}
-
-function renderCatMgrList(){
-  const list=document.getElementById('catmgr-list');
-  const cats=catMgrType==='gasto'?S.categories:(S.incomeCategories||[]);
-  if(!cats.length){list.innerHTML='<div class="empty" style="padding:20px"><p>Sin categorías</p></div>';return}
-  list.innerHTML=cats.map(c=>`
-    <div class="cat-list-item" style="border-left-color:${c.color}">
-      <div class="cat-list-item-info">
-        <span class="cat-list-item-icon">${c.icon}</span>
-        <span>${c.name}</span>
-      </div>
-      <div class="cat-list-item-actions">
-        <button class="cat-list-btn" onclick="openEditCategory('${c.id}','${catMgrType}')" title="Editar">✏️</button>
-        <button class="cat-list-btn" onclick="deleteCatMgr('${c.id}','${catMgrType}')" title="Eliminar">🗑️</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function deleteCatMgr(id,type){
-  const cats=type==='gasto'?S.categories:(S.incomeCategories||[]);
-  const cat=cats.find(c=>c.id===id);
-  if(!cat)return;
-  customConfirm('¿Eliminar "'+cat.name+'"?','Los movimientos existentes no se borran.',function(){
-    if(type==='gasto'){S.categories=S.categories.filter(c=>c.id!==id)}
-    else{S.incomeCategories=(S.incomeCategories||[]).filter(c=>c.id!==id)}
-    saveState();renderCatMgrList();renderPage();toast('Categoría eliminada');
-  });
-}
+function openCategoryManager(){catMgrType='gasto';catMgrEmoji='📌';catMgrColor=CAT_COLORS[0];document.getElementById('catmgr-name').value='';document.getElementById('catmgr-btn-gasto').className='cat-tbtn active-gasto';document.getElementById('catmgr-btn-ingreso').className='cat-tbtn';renderCatMgrEmojis();renderCatMgrColors();updateCatMgrPreview();renderCatMgrList();updateCatMgrFormTitle();openOverlay('catmgr-overlay')}
+function setCatMgrType(type){catMgrType=type;document.getElementById('catmgr-btn-gasto').className='cat-tbtn'+(type==='gasto'?' active-gasto':'');document.getElementById('catmgr-btn-ingreso').className='cat-tbtn'+(type==='ingreso'?' active-ingreso':'');renderCatMgrList();updateCatMgrFormTitle()}
+function updateCatMgrFormTitle(){document.getElementById('catmgr-form-title').textContent=catMgrType==='gasto'?'➕ Nueva categoría de gasto':'➕ Nueva categoría de ingreso';document.getElementById('catmgr-list-title').textContent=catMgrType==='gasto'?'📋 Categorías de gastos':'📋 Categorías de ingresos'}
+function renderCatMgrEmojis(){document.getElementById('catmgr-emojis').innerHTML=EMOJI_OPTIONS.map(e=>`<button class="emoji-opt${e===catMgrEmoji?' selected':''}" onclick="selectCatMgrEmoji(this,'${e}')" type="button">${e}</button>`).join('')}
+function selectCatMgrEmoji(el,emoji){catMgrEmoji=emoji;document.querySelectorAll('#catmgr-emojis .emoji-opt').forEach(e=>e.classList.remove('selected'));el.classList.add('selected');updateCatMgrPreview()}
+function renderCatMgrColors(){document.getElementById('catmgr-colors').innerHTML=CAT_COLORS.map(c=>`<div class="color-opt${c===catMgrColor?' selected':''}" style="background:${c}" onclick="selectCatMgrColor(this,'${c}')"></div>`).join('')}
+function selectCatMgrColor(el,color){catMgrColor=color;document.querySelectorAll('#catmgr-colors .color-opt').forEach(e=>e.classList.remove('selected'));el.classList.add('selected');updateCatMgrPreview()}
+function updateCatMgrPreview(){const name=document.getElementById('catmgr-name').value.trim()||'Nueva categoría';document.getElementById('catmgr-prev-icon').textContent=catMgrEmoji;document.getElementById('catmgr-prev-name').textContent=name;const chip=document.getElementById('catmgr-preview');chip.style.background=catMgrColor+'22';chip.style.color=catMgrColor}
+function saveCatMgr(){const name=document.getElementById('catmgr-name').value.trim();if(!name){toast('Escribe un nombre','err');return}const id=name.toLowerCase().replace(/[^a-z0-9áéíóúñü]/g,'_').replace(/[áéíóúñü]/g,c=>({á:'a',é:'e',í:'i',ó:'o',ú:'u',ñ:'n',ü:'u'}[c]||c));const targetArr=catMgrType==='gasto'?S.categories:(S.incomeCategories||[]);if(targetArr.find(c=>c.id===id)){toast('Ya existe esa categoría','err');return}const newCat={id,name,icon:catMgrEmoji,color:catMgrColor,type:catMgrType};if(catMgrType==='gasto'){S.categories.push(newCat)}else{if(!S.incomeCategories)S.incomeCategories=[];S.incomeCategories.push(newCat)}saveState();document.getElementById('catmgr-name').value='';catMgrEmoji='📌';renderCatMgrEmojis();updateCatMgrPreview();renderCatMgrList();renderPage();toast('✅ Categoría "'+name+'" creada')}
+function renderCatMgrList(){const list=document.getElementById('catmgr-list');const cats=catMgrType==='gasto'?S.categories:(S.incomeCategories||[]);if(!cats.length){list.innerHTML='<div class="empty" style="padding:20px"><p>Sin categorías</p></div>';return}list.innerHTML=cats.map(c=>`<div class="cat-list-item" style="border-left-color:${c.color}"><div class="cat-list-item-info"><span class="cat-list-item-icon">${c.icon}</span><span>${c.name}</span></div><div class="cat-list-item-actions"><button class="cat-list-btn" onclick="openEditCategory('${c.id}','${catMgrType}')" title="Editar">✏️</button><button class="cat-list-btn" onclick="deleteCatMgr('${c.id}','${catMgrType}')" title="Eliminar">🗑️</button></div></div>`).join('')}
+function deleteCatMgr(id,type){const cats=type==='gasto'?S.categories:(S.incomeCategories||[]);const cat=cats.find(c=>c.id===id);if(!cat)return;customConfirm('¿Eliminar "'+cat.name+'"?','Los movimientos existentes no se borran.',function(){if(type==='gasto'){S.categories=S.categories.filter(c=>c.id!==id)}else{S.incomeCategories=(S.incomeCategories||[]).filter(c=>c.id!==id)}saveState();renderCatMgrList();renderPage();toast('Categoría eliminada')})}
 
 /* ═══════════════════════════════════════════════════
    ✏️ EDITAR CATEGORÍA
    ═══════════════════════════════════════════════════ */
-function openEditCategory(id,type){
-  const cats=type==='gasto'?S.categories:(S.incomeCategories||[]);
-  const cat=cats.find(c=>c.id===id);
-  if(!cat)return;
-  document.getElementById('catedit-name').value=cat.name;
-  document.getElementById('catedit-id').value=cat.id;
-  document.getElementById('catedit-type').value=type;
-  document.getElementById('catedit-sub').textContent='Editando: '+cat.icon+' '+cat.name;
-  catEditEmoji=cat.icon;
-  catEditColor=cat.color;
-  // Render emojis
-  document.getElementById('catedit-emojis').innerHTML=EMOJI_OPTIONS.map(e=>
-    `<button class="emoji-opt${e===catEditEmoji?' selected':''}" onclick="selectCatEditEmoji(this,'${e}')" type="button">${e}</button>`
-  ).join('');
-  // Render colors
-  document.getElementById('catedit-colors').innerHTML=CAT_COLORS.map(c=>
-    `<div class="color-opt${c===catEditColor?' selected':''}" style="background:${c}" onclick="selectCatEditColor(this,'${c}')"></div>`
-  ).join('');
-  openOverlay('catedit-overlay');
-}
-
-function selectCatEditEmoji(el,emoji){
-  catEditEmoji=emoji;
-  document.querySelectorAll('#catedit-emojis .emoji-opt').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function selectCatEditColor(el,color){
-  catEditColor=color;
-  document.querySelectorAll('#catedit-colors .color-opt').forEach(e=>e.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function saveCatEdit(){
-  const name=document.getElementById('catedit-name').value.trim();
-  if(!name){toast('Escribe un nombre','err');return}
-  const id=document.getElementById('catedit-id').value;
-  const type=document.getElementById('catedit-type').value;
-  const cats=type==='gasto'?S.categories:(S.incomeCategories||[]);
-  const cat=cats.find(c=>c.id===id);
-  if(!cat){toast('Categoría no encontrada','err');return}
-  cat.name=name;
-  cat.icon=catEditEmoji;
-  cat.color=catEditColor;
-  saveState();
-  closeOverlay('catedit-overlay');
-  renderCatMgrList();
-  renderPage();
-  toast('Categoría actualizada ✅');
-}
+function openEditCategory(id,type){const cats=type==='gasto'?S.categories:(S.incomeCategories||[]);const cat=cats.find(c=>c.id===id);if(!cat)return;document.getElementById('catedit-name').value=cat.name;document.getElementById('catedit-id').value=cat.id;document.getElementById('catedit-type').value=type;document.getElementById('catedit-sub').textContent='Editando: '+cat.icon+' '+cat.name;catEditEmoji=cat.icon;catEditColor=cat.color;document.getElementById('catedit-emojis').innerHTML=EMOJI_OPTIONS.map(e=>`<button class="emoji-opt${e===catEditEmoji?' selected':''}" onclick="selectCatEditEmoji(this,'${e}')" type="button">${e}</button>`).join('');document.getElementById('catedit-colors').innerHTML=CAT_COLORS.map(c=>`<div class="color-opt${c===catEditColor?' selected':''}" style="background:${c}" onclick="selectCatEditColor(this,'${c}')"></div>`).join('');openOverlay('catedit-overlay')}
+function selectCatEditEmoji(el,emoji){catEditEmoji=emoji;document.querySelectorAll('#catedit-emojis .emoji-opt').forEach(e=>e.classList.remove('selected'));el.classList.add('selected')}
+function selectCatEditColor(el,color){catEditColor=color;document.querySelectorAll('#catedit-colors .color-opt').forEach(e=>e.classList.remove('selected'));el.classList.add('selected')}
+function saveCatEdit(){const name=document.getElementById('catedit-name').value.trim();if(!name){toast('Escribe un nombre','err');return}const id=document.getElementById('catedit-id').value;const type=document.getElementById('catedit-type').value;const cats=type==='gasto'?S.categories:(S.incomeCategories||[]);const cat=cats.find(c=>c.id===id);if(!cat){toast('Categoría no encontrada','err');return}cat.name=name;cat.icon=catEditEmoji;cat.color=catEditColor;saveState();closeOverlay('catedit-overlay');renderCatMgrList();renderPage();toast('Categoría actualizada ✅')}
 
 /* ═══════════════════════════════════════════════════
    RENDER PAGE ROUTER
@@ -862,12 +654,7 @@ function saveSavingsEntry(){const amt=parseFloat(document.getElementById('sav-am
 /* ═══════════════════════════════════════════════════
    SETTINGS
    ═══════════════════════════════════════════════════ */
-function renderSettings(){
-  const allCats=[...S.categories,...(S.incomeCategories||[])];
-  document.getElementById('cat-settings-list').innerHTML=allCats.slice(0,6).map(c=>
-    `<div class="srow"><div><div class="srow-lbl">${c.icon} ${c.name}</div><div class="srow-sub">${c.type==='ingreso'?'Ingreso':'Gasto'}</div></div></div>`
-  ).join('')+(allCats.length>6?`<div class="srow"><div><div class="srow-sub">y ${allCats.length-6} categorías más...</div></div></div>`:'');
-}
+function renderSettings(){const allCats=[...S.categories,...(S.incomeCategories||[])];document.getElementById('cat-settings-list').innerHTML=allCats.slice(0,6).map(c=>`<div class="srow"><div><div class="srow-lbl">${c.icon} ${c.name}</div><div class="srow-sub">${c.type==='ingreso'?'Ingreso':'Gasto'}</div></div></div>`).join('')+(allCats.length>6?`<div class="srow"><div><div class="srow-sub">y ${allCats.length-6} categorías más...</div></div></div>`:'')}
 function renameUser(n){const current=n===1?S.users.u1:S.users.u2;document.getElementById('rename-sub').textContent='Nombre actual: '+current;document.getElementById('rename-input').value=current;document.getElementById('rename-num').value=n;openOverlay('rename-overlay')}
 function saveRename(){const name=document.getElementById('rename-input').value.trim();if(!name){toast('Escribe un nombre','err');return}const n=parseInt(document.getElementById('rename-num').value);if(n===1)S.users.u1=name;else S.users.u2=name;saveState();closeOverlay('rename-overlay');updateUserNames();if(currentUser)document.getElementById('hdr-name').textContent=uName(currentUser);renderPage();toast('Nombre actualizado ✅')}
 function changePin(){document.getElementById('new-pin-input').value='';openOverlay('pin-overlay')}
@@ -884,12 +671,15 @@ function clearAllData(){customConfirm('⚠️ ¿Borrar TODOS los datos?','Esta a
    INIT
    ═══════════════════════════════════════════════════ */
 loadState();
-// Migración v4.3
-if(!S._catMigration43){migrateCategories();saveState()}
-// Migración v4.4 - categorías con type + incomeCategories
-if(!S._migration44){migrateToV44();saveState()}
+// Migración categorías (elimina mascotas/regalos/educacion, añade luz/agua/gas/internet/tarjeta crédito)
+if(!S._catMigration45){migrateCategories();S._catMigration45=true;saveState()}
+// Migración v4.5 - incomeCategories
+if(!S._migration45){migrateToV45();saveState()}
 updateUserNames();
 startRealtimeSync();
+// Preview en tiempo real al escribir nombre categoría
+document.getElementById('catmgr-name').addEventListener('input',updateCatMgrPreview);
+// Cerrar overlays al tocar fuera
 document.querySelectorAll('.overlay').forEach(ov=>{ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open')})});
 </script>
 </body>
