@@ -510,11 +510,24 @@ const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto',
 function mergeById(local,remote){const m=new Map();(local||[]).forEach(i=>{if(i&&i.id)m.set(i.id,i)});(remote||[]).forEach(i=>{if(i&&i.id){const ex=m.get(i.id);if(ex&&ex.ts&&i.ts){if(i.ts>=ex.ts)m.set(i.id,i)}else if(!ex){m.set(i.id,i)}}});return Array.from(m.values())}
 function activeItems(arr){return(arr||[]).filter(i=>!i._deleted)}
 function mergeBudgets(l,r){const m={...(l||{})};Object.keys(r||{}).forEach(k=>{m[k]=m[k]?{...m[k],...(r[k]||{})}:(r[k]||{})});return m}
+function applyMigrationsToCats(cats){
+  if(!cats)return JSON.parse(JSON.stringify(DEFAULT_CATS));
+  let result=cats.filter(c=>!REMOVE_CAT_IDS.includes(c.id));
+  ENSURE_CATS.forEach(cat=>{if(!result.find(c=>c.id===cat.id))result.push(cat)});
+  result.forEach(c=>{if(!c.type)c.type='gasto'});
+  // Sync name change for internet category
+  const inet=result.find(c=>c.id==='internet');
+  if(inet&&inet.name==='Internet')inet.name='Internet / Móvil';
+  return result;
+}
 function mergeStates(local,remote){if(!remote)return local;const merged={...local};if((remote.lastModified||0)>=(local.lastModified||0)){merged.pin=remote.pin||local.pin;merged.users=remote.users||local.users}
-  if(remote.categories&&remote.categories.length)merged.categories=remote.categories;
+  const rawCats=remote.categories&&remote.categories.length?remote.categories:local.categories;
+  merged.categories=applyMigrationsToCats(rawCats);
   if(remote.incomeCategories&&remote.incomeCategories.length)merged.incomeCategories=remote.incomeCategories;
+  if(!merged.incomeCategories||!merged.incomeCategories.length)merged.incomeCategories=JSON.parse(JSON.stringify(DEFAULT_INCOME_CATS));
+  merged.incomeCategories.forEach(c=>{if(!c.type)c.type='ingreso'});
   merged.movements=mergeById(local.movements,remote.movements);merged.goals=mergeById(local.goals,remote.goals);merged.savings=mergeById(local.savings,remote.savings);merged.budgets=mergeBudgets(local.budgets,remote.budgets);merged.lastModified=Math.max(local.lastModified||0,remote.lastModified||0);return merged}
-function saveState(){S.lastModified=Date.now();localStorage.setItem('gg_finances',JSON.stringify(S));if(firebaseReady&&dbRef){setSyncStatus('syncing');dbRef.once('value').then(snap=>{const r=snap.val();if(r){S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S))}return dbRef.set(S)}).then(()=>setSyncStatus('online')).catch(e=>{console.warn('Sync:',e);setSyncStatus('offline')})}}
+function saveState(){S.lastModified=Date.now();S.categories=applyMigrationsToCats(S.categories);localStorage.setItem('gg_finances',JSON.stringify(S));if(firebaseReady&&dbRef){setSyncStatus('syncing');dbRef.set(S).then(()=>setSyncStatus('online')).catch(e=>{console.warn('Sync:',e);setSyncStatus('offline')})}}
 function manualSync(){if(!firebaseReady||!dbRef){toast('Firebase no disponible','err');return}setSyncStatus('syncing');dbRef.once('value').then(snap=>{const r=snap.val();if(r)S=mergeStates(S,r);S.lastModified=Date.now();localStorage.setItem('gg_finances',JSON.stringify(S));return dbRef.set(S)}).then(()=>{setSyncStatus('online');updateUserNames();renderPage();toast('Sincronizado ✅')}).catch(e=>{setSyncStatus('offline');toast('Error de conexión','err')})}
 function startRealtimeSync(){if(!firebaseReady||!dbRef){setSyncStatus('offline');const el=document.getElementById('set-sync-status');if(el)el.textContent='Solo local';return}firebase.database().ref('.info/connected').on('value',s=>{setSyncStatus(s.val()?'online':'offline');const el=document.getElementById('set-sync-status');if(el)el.textContent=s.val()?'🟢 Conectado':'🔴 Sin conexión'});dbRef.on('value',snap=>{if(isSyncing)return;const r=snap.val();if(!r)return;isSyncing=true;if(!initialSyncDone){S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S));runMigrations();initialSyncDone=true}else{const bc=activeItems(S.movements).length;S=mergeStates(S,r);localStorage.setItem('gg_finances',JSON.stringify(S));if(activeItems(S.movements).length!==bc)toast('Datos sincronizados 🔄')}updateUserNames();renderPage();isSyncing=false})}
 function setSyncStatus(s){const d=document.getElementById('sync-dot');if(d)d.className='sync-indicator sync-'+s;const st=document.getElementById('sync-status');if(st){if(s==='online')st.innerHTML='<span style="color:var(--mint)">🟢 Sincronizado</span>';else if(s==='offline')st.innerHTML='<span style="color:var(--pink)">🔴 Sin conexión</span>';else st.innerHTML='<span style="color:var(--gold)">🟡 Sincronizando...</span>'}}
